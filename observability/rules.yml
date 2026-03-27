@@ -1,0 +1,24 @@
+groups:
+  - name: "Hackathon-Chaos-Anomalies"
+    rules:
+      - alert: "HighErrorRate"
+        # 1m window is standard for rate(), but threshold is hit immediately on a spike.
+        expr: |
+          rate(http_requests_total{status=~"5.."}[1m]) > 0.05
+        # No 'for: Xm' clause. We need instant alerts for the 15s latency budget.
+        labels:
+          severity: "critical"
+          # Metric explicitly mapped for the RCA JSON output
+          metric: "http_requests_total"
+        annotations:
+          description: "Service {{ $labels.service }} is experiencing > 5% 5xx errors."
+
+      - alert: "LatencySpike"
+        # Triggers if the 95th percentile latency exceeds 2.0s
+        expr: |
+          histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[1m])) > 2.0
+        labels:
+          severity: "critical"
+          metric: "http_request_duration_seconds"
+        annotations:
+          description: "Service {{ $labels.service }} 95th percentile latency is above 2.0s."
