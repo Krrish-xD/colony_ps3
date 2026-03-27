@@ -3,19 +3,17 @@
 ## 🎯 Problem Statement
 **"Build a real-time AI observability system that ingests live logs and metrics from an actually running distributed application, performs root cause analysis using ML, and triggers automated remediations end to end under 15 seconds."**
 
+> **Note:** The full, authoritative architectural breakdown, latency strategies, and component designs for this project can be found in [`ag_research/final_system_guide.md`](./ag_research/final_system_guide.md).
+
 ### Core Requirements:
-- **Target Application:** Deploy a distributed app (e.g., Sock Shop, Online Boutique, or custom stack) with at least 6 services using Docker Compose or Kubernetes.
-- **Load Generation:** Simulate real traffic using k6 or Locust.
-- **Observability Stack:** 
-  - Logs ➡️ Loki/OpenSearch
-  - Metrics ➡️ Prometheus
-  - Traces ➡️ Jaeger
-- **AI/ML Layer:** 
-  - Fine-tune a log model (DistilBERT/LogBERT) for anomaly detection.
-  - Train an LSTM/TCN on Prometheus metrics for degradation detection.
-  - Correlate log, metric, and trace anomalies to identify the true root-cause service.
-- **Auto-Remediation:** Trigger automated fixes via Docker/Kubernetes APIs or alerting integrations within 15 seconds.
-- **Reliability:** Use confidence thresholds to suppress false alerts and log every action alongside supporting evidence.
+- **Target Application:** Deploy a distributed app (4 independent services) with Docker Compose.
+- **Load Generation & Chaos:** Simulate real traffic and inject failures using Locust.
+- **Unified Telemetry:** Route all signals through an OpenTelemetry (OTel) Collector to Prometheus (Metrics), Loki (Logs), and Jaeger (Traces).
+- **Detection & RCA:** 
+  - Push-based anomaly triggers via Prometheus Alertmanager.
+  - Targeted LogQL correlation within a 3-second micro-buffer to bypass ingestion latency.
+- **Auto-Remediation:** Trigger container restarts via Docker socket under 15 seconds with a 30s cooldown cache.
+- **Dashboard:** Custom Next.js/React UI updating via Server-Sent Events (SSE).
 
 ---
 
@@ -24,7 +22,7 @@ A closed-loop system that **watches a running app ➡️ detects anomalies ➡�
 
 ### Data Sources (The 3 Pillars)
 1. **Metrics (Prometheus):** CPU usage, memory, latency, and error rates. Good for detecting *"something is wrong"*.
-2. **Logs (Loki/OpenSearch):** Error messages, stack traces, and warnings. Good for understanding *"what went wrong"*.
+2. **Logs (Loki):** Error messages, stack traces, and warnings. Good for understanding *"what went wrong"*.
 3. **Traces (Jaeger):** Request paths across services. Good for pinpointing *"where exactly the problem is"*.
 
 ---
@@ -32,46 +30,49 @@ A closed-loop system that **watches a running app ➡️ detects anomalies ➡�
 ## 🏗️ Architecture Flow
 
 ```text
-[Load Generator (k6/Locust)]
-        ↓
-[Microservices (6+ on Docker Compose / K8s)]
-        ↓
+[Locust Traffic & Chaos Generator]
+         ↓
+[Microservices (4 nodes on Docker Compose)]
+         ↓
+  [OpenTelemetry Collector]
+         ↓
  ┌───────────────┬───────────────┬───────────────┐
  │ Prometheus    │ Loki          │ Jaeger        │
  │ (Metrics)     │ (Logs)        │ (Traces)      │
  └──────┬────────┴──────┬────────┴──────┬────────┘
         ↓               ↓               ↓
-        [Anomaly Detection + RCA Engine]
+ [Alertmanager]  [Loki Targeted Query]  [Topology API]
+        ↓               ↓               ↓
+   [Python Root Cause Analysis & Remediation Engine]
                         ↓
-              [Decision Engine]
+     [Auto Remediation (Docker Socket API)]
                         ↓
-        [Auto Remediation (Docker/K8s API)]
+       [Next.js React Dashboard (via SSE)]
 ```
 
 ---
 
 ## 🚀 Implementation Strategy (30-Hour Hackathon Approach)
 
-Given the strict 30-hour time limit, the primary goal is an **end-to-end working pipeline**. We will prioritize a functional, correlated system over complex, computationally heavy ML perfection.
+Given the strict 30-hour time limit, the primary goal is an **end-to-end working pipeline**. We prioritize a highly functional, deterministic, and correlated system.
 
-### Phase 1: Infrastructure & Observability (Current Focus)
-- Deploy a sample microservices app (e.g., Sock Shop) using Docker Compose (easier and faster than K8s).
-- Set up Prometheus (metrics), Loki (logs), and Jaeger (traces).
-- Verify data ingestion before introducing AI.
+### Phase 1: Infrastructure & Observability (Next Up)
+- Deploy the 4 sample microservices + Locust load generator using Docker Compose.
+- Set up the OTel Collector, Prometheus, Loki, and Jaeger.
+- Verify data ingestion and topology.
 
-### Phase 2: Anomaly Detection (The ML Layer)
-- **Metrics:** Start with fast models like Isolation Forest (or simplified thresholds) before attempting LSTM.
-- **Logs:** Implement basic error classification (can use DistilBERT if time permits, or fallback to smart pattern matching).
+### Phase 2: Detection Layer 
+- Write deterministic PromQL alert rules for the microservices.
+- Configure Alertmanager to push webhooks when latency or error rates spike.
 
 ### Phase 3: Root Cause Analysis (RCA) - *The Hard Part*
-- Implement rule-based or lightweight ML correlation. 
-- Example Logic: `metrics spike (high latency) + logs show DB timeout + trace delays in payment-service = Root cause is payment-service`.
+- Build the Python webhook listener.
+- Implement the 3-second micro-buffer and targeted Loki query (`{app="failed-service"}`).
+- Implement the 30-second cooldown cache to prevent restart loops.
 
-### Phase 4: Auto-Remediation (<15s SLA)
-- Map identified root causes to predefined actions:
-  - Service crash ➡️ `Restart container`
-  - High load ➡️ `Scale service`
-- Execute these actions programmatically via the Docker API.
+### Phase 4: Auto-Remediation & Dashboard (<15s SLA)
+- Map identified root causes to predefined actions (Docker socket restart).
+- Build the Next.js Dashboard to dynamically discover topology from Jaeger and stream events via SSE.
 
 ---
 *Hackathon project - 30 hours on the clock.*
