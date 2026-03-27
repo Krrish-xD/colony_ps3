@@ -26,7 +26,7 @@ interface GraphData {
 export default function TopologyGraph() {
   const fgRef = useRef<ForceGraphMethods>();
   const [graphData, setGraphData] = useState<GraphData>({ nodes: [], links: [] });
-  const [logs, setLogs] = useState<{timestamp: string, message: string, type: 'info' | 'error' | 'success'}[]>([]);
+  const [logs, setLogs] = useState<{ timestamp: string, message: string, type: 'info' | 'error' | 'success' }[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
@@ -110,8 +110,8 @@ export default function TopologyGraph() {
             ...node,
             status,
             color: status === 'failing' ? '#ef4444' : // red-500
-                   status === 'recovering' ? '#eab308' : // yellow-500
-                   '#10b981', // green-500
+              status === 'recovering' ? '#eab308' : // yellow-500
+                '#10b981', // green-500
           };
         }
         return node;
@@ -125,22 +125,23 @@ export default function TopologyGraph() {
     if (!data.service) return;
 
     if (data.action === 'restart_container' || data.type === 'remediation') {
-      addLog(`RCA Engine triggered remediation for ${data.service}: Restarting container...`, 'error');
+      const cause = data.root_cause || 'Unknown';
+      const confidence = data.confidence ? ` (${Math.round(data.confidence * 100)}% confidence)` : '';
+      addLog(`🔴 ANOMALY: ${data.service} — RCA: "${cause}"${confidence}`, 'error');
+      addLog(`⚙️  ACTION: Restarting ${data.service} via Docker socket...`, 'error');
       updateNodeStatus(data.service, 'failing');
 
-      // Simulate recovery after 4 seconds (approximate container restart time)
       setTimeout(() => {
-        addLog(`Service ${data.service} is recovering...`, 'info');
+        addLog(`🟡 RECOVERING: ${data.service} container restarting...`, 'info');
         updateNodeStatus(data.service, 'recovering');
 
         setTimeout(() => {
-          addLog(`Service ${data.service} successfully restarted and healthy.`, 'success');
+          addLog(`✅ HEALTHY: ${data.service} successfully restarted.`, 'success');
           updateNodeStatus(data.service, 'healthy');
         }, 2000);
       }, 4000);
     } else if (data.severity === 'critical') {
-      // Direct alert without remediation action yet
-      addLog(`Critical alert on ${data.service}: ${data.metric || 'Unknown anomaly'}`, 'error');
+      addLog(`⚠️  ALERT: ${data.service} — ${data.metric || 'Unknown anomaly'} exceeded threshold`, 'error');
       updateNodeStatus(data.service, 'failing');
     }
   }, [updateNodeStatus, addLog]);
@@ -178,30 +179,43 @@ export default function TopologyGraph() {
     };
   }, [handleIncomingEvent, addLog]); // Only connect once, handleIncomingEvent is memoized
 
-  // Demo Mode Handler
+  // Demo Mode Handler — fully randomized fault scenarios
   const triggerDemoChaos = () => {
     const targets = ['payment-service', 'cart-service', 'auth-service'];
+    const faultScenarios = [
+      { metric: 'http_request_duration_seconds', root_cause: 'DB Timeout / Connection Refused', confidence: 0.95 },
+      { metric: 'http_requests_total', root_cause: 'Internal Server Error / Exception', confidence: 0.90 },
+      { metric: 'http_request_duration_seconds', root_cause: 'Memory Leak / OOM Killer', confidence: 0.95 },
+      { metric: 'http_requests_total', root_cause: 'Upstream Service Timeout', confidence: 0.85 },
+      { metric: 'http_request_duration_seconds', root_cause: 'Disk I/O Saturation', confidence: 0.80 },
+    ];
+
     const randomTarget = targets[Math.floor(Math.random() * targets.length)];
+    const scenario = faultScenarios[Math.floor(Math.random() * faultScenarios.length)];
 
-    addLog(`[DEMO] Simulating Prometheus Alert for ${randomTarget}...`, 'info');
+    addLog(`[DEMO] Prometheus alert firing: ${scenario.metric} exceeded threshold on ${randomTarget}`, 'info');
+    addLog(`[DEMO] Alertmanager → RCA Engine webhook dispatched`, 'info');
 
-    // Simulate Alertmanager firing
     setTimeout(() => {
       handleIncomingEvent({
         service: randomTarget,
-        metric: "http_request_duration_seconds",
-        severity: "critical",
+        metric: scenario.metric,
+        severity: 'critical',
         timestamp: new Date().toISOString()
       });
 
-      // Simulate RCA Engine correlation and action 3 seconds later
+      // Simulate the 3s RCA micro-buffer then remediation
       setTimeout(() => {
-        handleIncomingEvent({
-          service: randomTarget,
-          action: "restart_container",
-          root_cause: "DB Timeout / Connection Refused",
-          timestamp: new Date().toISOString()
-        });
+        addLog(`[DEMO] RCA Engine: 3s ingestion buffer complete. Querying Loki...`, 'info');
+        setTimeout(() => {
+          handleIncomingEvent({
+            service: randomTarget,
+            action: 'restart_container',
+            root_cause: scenario.root_cause,
+            confidence: scenario.confidence,
+            timestamp: new Date().toISOString()
+          });
+        }, 1500);
       }, 3000);
     }, 1000);
   };
@@ -292,7 +306,7 @@ export default function TopologyGraph() {
               onClick={triggerDemoChaos}
               className="w-full py-2 px-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white rounded font-medium transition-all shadow-lg shadow-red-900/20 flex items-center justify-center gap-2"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m11 7-3.2 3.2a1.1 1.1 0 0 0 0 1.6l4.4 4.4a1.1 1.1 0 0 0 1.6 0L17 13"/><path d="m2 22 20-20"/><path d="m15 15-2-2"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m11 7-3.2 3.2a1.1 1.1 0 0 0 0 1.6l4.4 4.4a1.1 1.1 0 0 0 1.6 0L17 13" /><path d="m2 22 20-20" /><path d="m15 15-2-2" /></svg>
               Activate Demo Chaos
             </button>
             <p className="text-xs text-gray-500 mt-2 text-center">
@@ -311,11 +325,10 @@ export default function TopologyGraph() {
             ) : (
               <ul className="space-y-2 flex flex-col justify-end min-h-full">
                 {logs.map((log, i) => (
-                  <li key={i} className={`pb-1 ${
-                    log.type === 'error' ? 'text-red-400' :
-                    log.type === 'success' ? 'text-green-400' :
-                    'text-gray-300'
-                  }`}>
+                  <li key={i} className={`pb-1 ${log.type === 'error' ? 'text-red-400' :
+                      log.type === 'success' ? 'text-green-400' :
+                        'text-gray-300'
+                    }`}>
                     <span className="text-gray-600 mr-2">[{log.timestamp}]</span>
                     {log.message}
                   </li>
