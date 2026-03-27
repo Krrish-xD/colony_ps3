@@ -32,3 +32,61 @@ Your task is to write an extremely scoped `locustfile.py` script.
 1. **Traffic Generation Task**: Generate an infinite, fast-paced constant baseline of healthy HTTP traffic (e.g., waiting `between(0.1, 0.5)` seconds per user) simulating users hitting `http://frontend-service:8080/process`. This ensures Jaeger and Loki always have background traces resolving to 200 OK.
 2. **Chaos Execution Task**: Define an explicit trigger (e.g. a separate Locust Task with extremely low weighting (weight=0.01), or a purely manual standalone script) that specifically invokes `http://payment-service:8080/fault/timeout`. This must be perfectly calibrated so the backend simulating service genuinely halts, tripping the Prometheus latency thresholds.
 3. **Dockerization Requirement**: Output a lightweight python `Dockerfile` that automatically runs the Locust headless load generator pointing to the internal docker network upon startup.
+
+
+--------------------------------------------------
+🔁 MANDATORY 2-PASS SELF-REVIEW LOOP
+--------------------------------------------------
+
+After completing the initial implementation, you MUST perform 2 full review passes before finalizing.
+
+----------------------------------
+PASS 1 — CODE REVIEW (CRITICAL)
+----------------------------------
+
+Analyze your own code for:
+
+- correctness (will it actually run?)
+- missing requirements from prompt
+- broken inter-service communication
+- incorrect OpenTelemetry setup
+- missing or malformed logs
+- incorrect chaos endpoint behavior
+
+Output:
+
+## Pass 1 Review
+- Issues Found
+- Why they are problems
+- Fixes to apply
+
+Then APPLY all fixes.
+
+----------------------------------
+PASS 2 — OPTIMIZATION & SIMPLIFICATION
+----------------------------------
+
+Now optimize for:
+
+- performance (latency, unnecessary overhead)
+- simplicity (remove unnecessary code)
+- clarity (clean structure)
+- Docker image size
+- startup speed
+
+Output:
+
+## Pass 2 Optimization
+- Improvements made
+- What was removed or simplified
+- Final justification of design
+
+----------------------------------
+FINAL OUTPUT
+----------------------------------
+
+Only after BOTH passes:
+
+- output final cleaned code
+- ensure all requirements are satisfied
+- ensure system is minimal and fast

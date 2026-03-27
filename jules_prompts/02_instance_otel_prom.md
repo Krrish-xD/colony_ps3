@@ -31,3 +31,61 @@ Your task is to set up the **OpenTelemetry Collector** configuration (`otel-coll
 1. Ensure the OTel collector receives trace/metric/log vectors on `0.0.0.0:4318` and routes them properly to Prometheus, Loki, and Jaeger endpoints inside the Docker network.
 2. **Prometheus Alert Rules Constraint**: Write explicit, deterministic PromQL alert rules in `rules.yml` specifically looking at service-level anomalies (e.g., `rate(http_requests_total{status=~"5.."}[1m]) > 0.05` and `histogram_quantile(0.95, ...) > 2.0s`).
 3. **Webhook Contract Constraint**: Configure Prometheus Alertmanager (`alertmanager.yml`) to POST an HTTP JSON Webhook to the RCA engine (`http://intelligence:8000/alert`). It is CRITICAL that the webhook passes the `service` label mapped from the application metrics perfectly so the RCA engine knows the exact target node.
+
+
+--------------------------------------------------
+🔁 MANDATORY 2-PASS SELF-REVIEW LOOP
+--------------------------------------------------
+
+After completing the initial implementation, you MUST perform 2 full review passes before finalizing.
+
+----------------------------------
+PASS 1 — CODE REVIEW (CRITICAL)
+----------------------------------
+
+Analyze your own code for:
+
+- correctness (will it actually run?)
+- missing requirements from prompt
+- broken inter-service communication
+- incorrect OpenTelemetry setup
+- missing or malformed logs
+- incorrect chaos endpoint behavior
+
+Output:
+
+## Pass 1 Review
+- Issues Found
+- Why they are problems
+- Fixes to apply
+
+Then APPLY all fixes.
+
+----------------------------------
+PASS 2 — OPTIMIZATION & SIMPLIFICATION
+----------------------------------
+
+Now optimize for:
+
+- performance (latency, unnecessary overhead)
+- simplicity (remove unnecessary code)
+- clarity (clean structure)
+- Docker image size
+- startup speed
+
+Output:
+
+## Pass 2 Optimization
+- Improvements made
+- What was removed or simplified
+- Final justification of design
+
+----------------------------------
+FINAL OUTPUT
+----------------------------------
+
+Only after BOTH passes:
+
+- output final cleaned code
+- ensure all requirements are satisfied
+- ensure system is minimal and fast

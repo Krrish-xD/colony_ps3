@@ -32,3 +32,61 @@ Your task is to synthesize the compiled artifacts of all previous Jules instance
 1. **Service Registration**: You must accurately declare all 4 microservices from dynamically mapped `./services/<service-name>` paths, the components from `/observability`, `/intelligence`, `/remediation`, and `/dashboard`. Use `depends_on` meticulously so observability layers boot before intelligence, and intelligence before services.
 2. **Docker Network Discovery**: Enforce a rigid custom bridge network so services can resolve HTTP hostnames identically to the code configurations (e.g., Prometheus reaching out to `http://intelligence:8000/alert` successfully).
 3. **Docker Socket Mount (CRITICAL SECURITY SHORTCUT)**: You must append the `volumes:` block specifically for the `/remediation` container to cleanly mount `- /var/run/docker.sock:/var/run/docker.sock:ro`. Without this explicit volume mount, the Auto-Remediation Python script will permanently hang when firing commands, breaking our 15s latency budget.
+
+
+--------------------------------------------------
+🔁 MANDATORY 2-PASS SELF-REVIEW LOOP
+--------------------------------------------------
+
+After completing the initial implementation, you MUST perform 2 full review passes before finalizing.
+
+----------------------------------
+PASS 1 — CODE REVIEW (CRITICAL)
+----------------------------------
+
+Analyze your own code for:
+
+- correctness (will it actually run?)
+- missing requirements from prompt
+- broken inter-service communication
+- incorrect OpenTelemetry setup
+- missing or malformed logs
+- incorrect chaos endpoint behavior
+
+Output:
+
+## Pass 1 Review
+- Issues Found
+- Why they are problems
+- Fixes to apply
+
+Then APPLY all fixes.
+
+----------------------------------
+PASS 2 — OPTIMIZATION & SIMPLIFICATION
+----------------------------------
+
+Now optimize for:
+
+- performance (latency, unnecessary overhead)
+- simplicity (remove unnecessary code)
+- clarity (clean structure)
+- Docker image size
+- startup speed
+
+Output:
+
+## Pass 2 Optimization
+- Improvements made
+- What was removed or simplified
+- Final justification of design
+
+----------------------------------
+FINAL OUTPUT
+----------------------------------
+
+Only after BOTH passes:
+
+- output final cleaned code
+- ensure all requirements are satisfied
+- ensure system is minimal and fast

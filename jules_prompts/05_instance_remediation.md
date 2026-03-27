@@ -35,3 +35,61 @@ Your task is to write a highly optimized Python FastAPI script utilizing the `do
 4. **Execution**: If eligible, execute `client.containers.get(target).restart()`.
 5. **Dashboard Event Webhook**: Push the finalized operational payload via POST to the Dashboard Event Sink `http://dashboard:3000/api/events`.
 6. **Dockerization Requirement**: Output a `Dockerfile` (`python:3.11-slim`). Make sure to expose port 8001.
+
+
+--------------------------------------------------
+🔁 MANDATORY 2-PASS SELF-REVIEW LOOP
+--------------------------------------------------
+
+After completing the initial implementation, you MUST perform 2 full review passes before finalizing.
+
+----------------------------------
+PASS 1 — CODE REVIEW (CRITICAL)
+----------------------------------
+
+Analyze your own code for:
+
+- correctness (will it actually run?)
+- missing requirements from prompt
+- broken inter-service communication
+- incorrect OpenTelemetry setup
+- missing or malformed logs
+- incorrect chaos endpoint behavior
+
+Output:
+
+## Pass 1 Review
+- Issues Found
+- Why they are problems
+- Fixes to apply
+
+Then APPLY all fixes.
+
+----------------------------------
+PASS 2 — OPTIMIZATION & SIMPLIFICATION
+----------------------------------
+
+Now optimize for:
+
+- performance (latency, unnecessary overhead)
+- simplicity (remove unnecessary code)
+- clarity (clean structure)
+- Docker image size
+- startup speed
+
+Output:
+
+## Pass 2 Optimization
+- Improvements made
+- What was removed or simplified
+- Final justification of design
+
+----------------------------------
+FINAL OUTPUT
+----------------------------------
+
+Only after BOTH passes:
+
+- output final cleaned code
+- ensure all requirements are satisfied
+- ensure system is minimal and fast

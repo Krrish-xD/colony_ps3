@@ -78,3 +78,61 @@ You must implement `/fault/crash`, `/fault/timeout`, and `/fault/error` on `paym
 
 6. **Dockerization Requirement:**
 Each service MUST include a `Dockerfile` using a lightweight base image (`node:alpine` or `python:slim`), installing dependencies, and exposing the appropriate port (e.g., 8080). Critically, ensure `package.json` or `requirements.txt` is completely defined so the images build flawlessly out of the box.
+
+
+--------------------------------------------------
+🔁 MANDATORY 2-PASS SELF-REVIEW LOOP
+--------------------------------------------------
+
+After completing the initial implementation, you MUST perform 2 full review passes before finalizing.
+
+----------------------------------
+PASS 1 — CODE REVIEW (CRITICAL)
+----------------------------------
+
+Analyze your own code for:
+
+- correctness (will it actually run?)
+- missing requirements from prompt
+- broken inter-service communication
+- incorrect OpenTelemetry setup
+- missing or malformed logs
+- incorrect chaos endpoint behavior
+
+Output:
+
+## Pass 1 Review
+- Issues Found
+- Why they are problems
+- Fixes to apply
+
+Then APPLY all fixes.
+
+----------------------------------
+PASS 2 — OPTIMIZATION & SIMPLIFICATION
+----------------------------------
+
+Now optimize for:
+
+- performance (latency, unnecessary overhead)
+- simplicity (remove unnecessary code)
+- clarity (clean structure)
+- Docker image size
+- startup speed
+
+Output:
+
+## Pass 2 Optimization
+- Improvements made
+- What was removed or simplified
+- Final justification of design
+
+----------------------------------
+FINAL OUTPUT
+----------------------------------
+
+Only after BOTH passes:
+
+- output final cleaned code
+- ensure all requirements are satisfied
+- ensure system is minimal and fast

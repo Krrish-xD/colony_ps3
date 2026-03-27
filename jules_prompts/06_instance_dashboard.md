@@ -33,3 +33,61 @@ Your task is to build a clean **Next.js / React** application heavily styled wit
 2. **Topology Discovery**: On page mount, perform an HTTP GET to Jaeger's `/api/dependencies` endpoint. Dynamically draw a forced-directed node graph representing the layout. Provide an immediate clean static fallback array (`frontend-service`, `auth-service`, `cart-service`, `payment-service`) if the Jaeger API fails during the hackathon. Ensure the UI has an "Activate Demo Mode" button to mock SSE events flawlessly in case the backend crashes during presentation.
 3. **UI Pulse Triggers**: When an SSE event fires stating a container is failing, immediately pulse the corresponding graph node RED via Tailwind classes (`animate-pulse bg-red-500`). Append a log entry into an "Event Stream" terminal UI visualizing the RCA action. Once the `restart` payload resolves, pulse the node GREEN.
 4. **Output Expectations**: Include a valid `Dockerfile` optimized for Next.js standalone execution. Output a clean web-ready directory structure.
+
+
+--------------------------------------------------
+🔁 MANDATORY 2-PASS SELF-REVIEW LOOP
+--------------------------------------------------
+
+After completing the initial implementation, you MUST perform 2 full review passes before finalizing.
+
+----------------------------------
+PASS 1 — CODE REVIEW (CRITICAL)
+----------------------------------
+
+Analyze your own code for:
+
+- correctness (will it actually run?)
+- missing requirements from prompt
+- broken inter-service communication
+- incorrect OpenTelemetry setup
+- missing or malformed logs
+- incorrect chaos endpoint behavior
+
+Output:
+
+## Pass 1 Review
+- Issues Found
+- Why they are problems
+- Fixes to apply
+
+Then APPLY all fixes.
+
+----------------------------------
+PASS 2 — OPTIMIZATION & SIMPLIFICATION
+----------------------------------
+
+Now optimize for:
+
+- performance (latency, unnecessary overhead)
+- simplicity (remove unnecessary code)
+- clarity (clean structure)
+- Docker image size
+- startup speed
+
+Output:
+
+## Pass 2 Optimization
+- Improvements made
+- What was removed or simplified
+- Final justification of design
+
+----------------------------------
+FINAL OUTPUT
+----------------------------------
+
+Only after BOTH passes:
+
+- output final cleaned code
+- ensure all requirements are satisfied
+- ensure system is minimal and fast
