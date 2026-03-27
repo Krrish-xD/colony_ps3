@@ -46,6 +46,7 @@ ingester:
   chunk_block_size: 100000  # ~100KB
   chunk_retain_period: 1m
   max_transfer_retries: 0
+  flush_on_shutdown: true
   lifecycler:
     ring:
       kvstore:

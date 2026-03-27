@@ -25,7 +25,7 @@ from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 # --- Configuration ---
 SERVICE_NAME = os.getenv("SERVICE_NAME", "frontend-service")
-DOWNSTREAM_URL = os.getenv("DOWNSTREAM_URL", "http://auth-service:8080")
+DOWNSTREAM_URL = os.getenv("DOWNSTREAM_URL", "http://auth-service:8081")
 OTLP_ENDPOINT = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318")
 
 # --- OpenTelemetry Setup ---

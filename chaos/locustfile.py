@@ -19,4 +19,4 @@ class SystemUser(HttpUser):
         Extremely low weighting (1%) to occasionally halt the backend
         and trip the Prometheus latency thresholds.
         """
-        self.client.get("http://payment-service:8080/fault/timeout", name="chaos_trigger")
+        self.client.get("http://payment-service:8083/fault/timeout", name="chaos_trigger")
