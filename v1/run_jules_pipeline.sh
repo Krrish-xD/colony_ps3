@@ -2,7 +2,7 @@
 
 # Script to dispatch Jules AI cloud instances for the Colony PS3 Project
 
-PROJECT_DIR="/home/xd/Coding/colony_ps3"
+PROJECT_DIR="/home/xd/Coding/colony_ps3/v1"
 PROMPTS_DIR="$PROJECT_DIR/jules_prompts"
 
 cd "$PROJECT_DIR" || exit 1
