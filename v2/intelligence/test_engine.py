@@ -32,6 +32,18 @@ TEST_SCENARIOS = {
         "Request processed successfully in 45ms.",
         "User logged in.",
         "Starting service."
+    ],
+    "Authentication Failure": [
+        "User attempted login...",
+        "Error: Invalid token provided.",
+        "Signature verification failed.",
+        "Returning 401 Unauthorized."
+    ],
+    "Unknown / Novel Error": [
+        "Processing image format...",
+        "Error: The flux capacitor is out of plutonium.",
+        "Bizarre error in hyperspace routing.",
+        "Failed to align warp drive crystals."
     ]
 }
 

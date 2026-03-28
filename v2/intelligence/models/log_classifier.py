@@ -6,16 +6,20 @@ class ZeroShotLogClassifier:
         self.embedding_model = embedding_model
         self.device = device
 
-        # Predefined categories and their descriptions based on the v2 architecture
+        # Expanded predefined categories and their descriptions based on the v2 architecture
         self.categories = {
-            "db_connection_exhaustion": "Connection pool drained, postgres refused, database connection timeout.",
-            "memory_pressure": "Out of memory, OOM, memory leak patterns, heap space limit.",
-            "upstream_timeout": "Downstream service timed out causing upstream cascade, slow response.",
-            "crash_injection": "os._exit(1) called, hard crash, container dies instantly.",
-            "disk_io_saturation": "Slow disk, I/O wait patterns, high input/output latency.",
-            "connection_refused": "Network unreachable, service down, connection reset by peer.",
-            "normal_degradation": "Slight slowdown, not critical, request taking longer than usual.",
-            "normal": "Normal operation, request processed successfully, starting service."
+            "db_connection_exhaustion": "Connection pool drained, postgres refused, database connection timeout, no available connections.",
+            "memory_pressure": "Out of memory, OOM, memory leak patterns, heap space limit, garbage collection overhead.",
+            "upstream_timeout": "Downstream service timed out causing upstream cascade, slow response, gateway timeout, 504.",
+            "crash_injection": "os._exit(1) called, hard crash, container dies instantly, segmentation fault, panic.",
+            "disk_io_saturation": "Slow disk, I/O wait patterns, high input/output latency, disk full, no space left on device.",
+            "connection_refused": "Network unreachable, service down, connection reset by peer, connection closed abruptly.",
+            "authentication_failure": "Invalid token, unauthorized, 401, signature verification failed, expired credentials.",
+            "rate_limiting": "Too many requests, 429, rate limit exceeded, quota exhausted, throttling applied.",
+            "data_corruption": "Checksum mismatch, corrupted payload, invalid JSON, unable to parse data.",
+            "dependency_failure": "Third-party API failed, external dependency down, payment gateway unreachable.",
+            "normal_degradation": "Slight slowdown, not critical, request taking longer than usual but completing.",
+            "normal": "Normal operation, request processed successfully, health check ok, starting service."
         }
 
         self.category_names = list(self.categories.keys())
@@ -53,5 +57,14 @@ class ZeroShotLogClassifier:
 
         # Get the highest probability and corresponding category
         max_prob, max_idx = torch.max(probs, dim=0)
+
+        # Determine the maximum raw cosine similarity to the closest category
+        max_sim = similarities[0, max_idx.item()].item()
+
+        # If the highest similarity is below a strong threshold, it's an unseen, novel error pattern.
+        # This prevents the model from confidently guessing the wrong category when given totally unrelated logs.
+        UNKNOWN_THRESHOLD = 0.45
+        if max_sim < UNKNOWN_THRESHOLD:
+            return "unknown", max_prob.item()
 
         return self.category_names[max_idx.item()], max_prob.item()
