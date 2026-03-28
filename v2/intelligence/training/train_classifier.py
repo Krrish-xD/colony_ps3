@@ -67,19 +67,23 @@ def load_data():
             with open(os.path.join(DATA_DIR, filename), 'r') as f:
                 data = json.load(f)
 
-            label = data.get("label")
-            if label not in ROOT_CAUSE_CLASSES:
-                label = "unknown"
+            # Support both massive dataset.json arrays AND individual sample jsons
+            samples = data if isinstance(data, list) else [data]
 
-            label_idx = ROOT_CAUSE_CLASSES.index(label)
+            for s in samples:
+                label = s.get("label")
+                if label not in ROOT_CAUSE_CLASSES:
+                    label = "unknown"
 
-            logs_emb = embed_logs(embedding_model, data.get("logs", []))
-            mets_feat = extract_metric_features(data.get("metrics", []))
-            trc_feat = extract_trace_features(data.get("traces", []))
+                label_idx = ROOT_CAUSE_CLASSES.index(label)
 
-            combined = logs_emb + mets_feat + trc_feat
-            features.append(combined)
-            labels.append(label_idx)
+                logs_emb = embed_logs(embedding_model, s.get("logs", []))
+                mets_feat = extract_metric_features(s.get("metrics", []))
+                trc_feat = extract_trace_features(s.get("traces", []))
+
+                combined = logs_emb + mets_feat + trc_feat
+                features.append(combined)
+                labels.append(label_idx)
 
     return np.array(features), np.array(labels)
 

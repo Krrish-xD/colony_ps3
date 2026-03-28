@@ -1,16 +1,18 @@
 # Colony PS3 Project Context
 
 ## Current State
-- **Phase**: v1 System Completed & Archived (`/v1`). Commencing `v2` Architecture & Planning Phase.
-- **Goal**: Expand the autonomous observability & remediation pipeline beyond the hackathon-constrained bounds of `v1` into a robust, state-of-the-art `v2` implementation.
+- **Phase**: v1 & v2 Architecture Completed. Commencing `v3` Planning Phase.
+- **Goal**: Build the final, production-grade v3 iteration. The core focus is expanding microservice complexity so that each service can emit multiple, distinct, overlapping error types. This will force the ML RCA routing engine to perform true diagnostic classification rather than just node-level identification.
 
-## System Architecture (v1 Review)
-The v1 design successfully achieved a lightweight, 4-tier microservice architecture instrumented with OpenTelemetry.
-- **Detection**: PromQL rules on Prometheus Alertmanager (push-based triggers), ensuring guaranteed anomaly hits during a live demo.
-- **RCA / Remediation**: A custom Python engine that receives the target node from Alertmanager, waits precisely 3 seconds, queries Loki for exact errors, and remediates via the Docker socket (with a 30s restart cooldown cache).
-- **Dashboard**: A custom Next.js/React + SSE frontend dynamically mapping the live topology and showing real-time event logs of the RCA logic.
+## System Architecture (v1 & v2 Review)
+The previous iterations successfully shipped:
+- A 9-tier FastAPI microservice mesh on Docker Compose.
+- **Detection**: PromQL & Alertmanager 1s evaluation loops.
+- **RCA / Remediation**: A Python intelligence engine using an LSTM for metric forecasting and a PyTorch Fusion Classifier (Logs via MiniLM, Metrics, Traces) to trigger confidence-gated remediations via the Docker Socket.
+- **Dashboard**: A React Next.js sci-fi dashboard visualizing live distributed topology and SSE events.
 
 ## Directory Structure
-- `v1/`: Complete archive of the functional Hackathon MVP.
-- `README.md`: Main entry point summarizing the hackathon project problem statement, architecture flow.
-- (New) `v2/`: To be bootstrapped.
+- `v1/`: Hackathon MVP archive.
+- `v2/`: Previous 9-tier iteration.
+- `README.md`: Main entry point.
+- (New) `v3/`: Under active planning.

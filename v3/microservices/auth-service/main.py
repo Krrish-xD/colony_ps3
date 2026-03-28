@@ -1,6 +1,10 @@
 import os
 import sys
 import json
+import logging
+from pythonjsonlogger import jsonlogger
+from prometheus_fastapi_instrumentator import Instrumentator
+
 import time
 import requests
 import datetime
@@ -45,6 +49,18 @@ tracer = trace.get_tracer(__name__)
 meter = metrics.get_meter(__name__)
 
 app = FastAPI(title=SERVICE_NAME)
+
+Instrumentator().instrument(app).expose(app)
+
+logger = logging.getLogger(SERVICE_NAME)
+logger.setLevel(logging.INFO)
+logHandler = logging.StreamHandler()
+formatter = jsonlogger.JsonFormatter('%(asctime)s %(levelname)s %(name)s %(service)s %(message)s')
+logHandler.setFormatter(formatter)
+logger.handlers.clear()
+logger.addHandler(logHandler)
+logger = logging.LoggerAdapter(logger, extra={"service": SERVICE_NAME})
+
 FastAPIInstrumentor.instrument_app(app)
 RequestsInstrumentor().instrument()
 
@@ -52,15 +68,13 @@ def log_event(level, message, error_type=""):
     current_span = trace.get_current_span()
     trace_id = format(current_span.get_span_context().trace_id, '032x') if current_span and current_span.get_span_context().is_valid else ""
 
-    log_data = {
-        "service": SERVICE_NAME,
-        "level": level,
-        "message": message,
-        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
-        "trace_id": trace_id,
-        "error_type": error_type
-    }
-    print(json.dumps(log_data), flush=True)
+    extra = {"trace_id": trace_id, "error_type": error_type}
+    if level == "info":
+        logger.info(message, extra=extra)
+    elif level == "error":
+        logger.error(message, extra=extra)
+    elif level == "warning":
+        logger.warning(message, extra=extra)
 
 @app.get("/health")
 def health():
