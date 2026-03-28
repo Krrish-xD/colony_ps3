@@ -14,6 +14,7 @@ from evidence_chain import build_evidence_chain
 from fingerprint_store import FingerprintStore
 from models.fusion_classifier import FusionClassifier, classify, ROOT_CAUSE_CLASSES
 from models.lstm_detector import lstm_predict_and_check
+from models.log_classifier import ZeroShotLogClassifier
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -26,6 +27,9 @@ logger.info(f"Using device: {device}")
 
 # Load sentence transformer model
 embedding_model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
+
+# Load zero-shot log classifier
+log_classifier = ZeroShotLogClassifier(embedding_model, device)
 
 # Load fusion model
 fusion_model = FusionClassifier()
@@ -288,6 +292,17 @@ def health():
 @app.get("/incidents")
 def get_incidents():
     return fingerprint_store.get_recent()
+
+class LogBatchRequest(BaseModel):
+    logs: list[str]
+
+@app.post("/classify_logs")
+def classify_logs_endpoint(request: LogBatchRequest):
+    root_cause, confidence = log_classifier.classify(request.logs)
+    return {
+        "root_cause": root_cause,
+        "confidence": round(confidence, 4)
+    }
 
 @app.post("/alert")
 async def handle_alert(request: Request, background_tasks: BackgroundTasks):
