@@ -1,0 +1,154 @@
+[
+  {
+    "scenario_id": "cross-frontend-cart-001",
+    "target_service": "frontend",
+    "error_type": "latency_spike",
+    "metric_features": {
+      "latency_ms": 3200.5,
+      "error_rate": 0.05,
+      "rps": 120.0
+    },
+    "log_features": {
+      "error_count": 45,
+      "timeout_count": 40,
+      "keywords": [
+        "timeout",
+        "cart API"
+      ],
+      "sample_log": "WARN: timeout while fetching cart items"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "cart"
+      ],
+      "bottleneck_service": "cart"
+    },
+    "root_cause_service": "cart",
+    "root_cause_type": "latency_spike",
+    "confidence_hint": "High",
+    "reasoning": "Frontend trace halts at Cart; Cart metrics match with 3000ms+ latency."
+  },
+  {
+    "scenario_id": "isolated-payment-002",
+    "target_service": "payment",
+    "error_type": "high_error_rate",
+    "metric_features": {
+      "latency_ms": 150.0,
+      "error_rate": 0.85,
+      "rps": 30.0
+    },
+    "log_features": {
+      "error_count": 120,
+      "timeout_count": 0,
+      "keywords": [
+        "gateway",
+        "payment declined",
+        "503"
+      ],
+      "sample_log": "ERR: External Payment Gateway returned 503"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "payment",
+        "external-gateway"
+      ],
+      "bottleneck_service": "external-gateway"
+    },
+    "root_cause_service": "payment",
+    "root_cause_type": "dependency_failure",
+    "confidence_hint": "High",
+    "reasoning": "Payment service throws 503 uniquely due to an external API dependency failure."
+  },
+  {
+    "scenario_id": "cross-frontend-catalog-003",
+    "target_service": "frontend",
+    "error_type": "service_crash",
+    "metric_features": {
+      "latency_ms": 50.0,
+      "error_rate": 0.40,
+      "rps": 200.0
+    },
+    "log_features": {
+      "error_count": 80,
+      "timeout_count": 0,
+      "keywords": [
+        "connection refused",
+        "catalog"
+      ],
+      "sample_log": "ERR: Failed to connect to Catalog API - Connection refused"
+    },
+    "trace": {
+      "path": [
+        "frontend"
+      ],
+      "bottleneck_service": "catalog"
+    },
+    "root_cause_service": "catalog",
+    "root_cause_type": "crash",
+    "confidence_hint": "Medium",
+    "reasoning": "Frontend fails instantly on catalog call. Catalog container is restarting."
+  },
+  {
+    "scenario_id": "isolated-shipping-004",
+    "target_service": "shipping",
+    "error_type": "high_error_rate",
+    "metric_features": {
+      "latency_ms": 85.0,
+      "error_rate": 0.60,
+      "rps": 40.0
+    },
+    "log_features": {
+      "error_count": 60,
+      "timeout_count": 5,
+      "keywords": [
+        "config",
+        "missing carrier"
+      ],
+      "sample_log": "ERR: Carrier configuration missing for region US-EAST"
+    },
+    "trace": {
+      "path": [
+        "checkout",
+        "shipping"
+      ],
+      "bottleneck_service": "shipping"
+    },
+    "root_cause_service": "shipping",
+    "root_cause_type": "config_error",
+    "confidence_hint": "High",
+    "reasoning": "Shipping throwing localized logic validation errors; no dependencies failing."
+  },
+  {
+    "scenario_id": "cross-auth-database-005",
+    "target_service": "auth",
+    "error_type": "traffic_spike",
+    "metric_features": {
+      "latency_ms": 4500.0,
+      "error_rate": 0.20,
+      "rps": 500.0
+    },
+    "log_features": {
+      "error_count": 100,
+      "timeout_count": 85,
+      "keywords": [
+        "deadlock",
+        "pool exhausted"
+      ],
+      "sample_log": "WARN: Database connection pool exhausted"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "auth",
+        "database"
+      ],
+      "bottleneck_service": "database"
+    },
+    "root_cause_service": "database",
+    "root_cause_type": "resource_exhaustion",
+    "confidence_hint": "High",
+    "reasoning": "Auth RPS spiked, exhausting the DB connection pool. Trace ends at DB timeout."
+  }
+]

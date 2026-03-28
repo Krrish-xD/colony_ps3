@@ -1,0 +1,730 @@
+[
+  {
+    "scenario_id": "cross-frontend-cart-001",
+    "target_service": "frontend",
+    "error_type": "latency_spike",
+    "metric_features": {
+      "latency_ms": 4664.5,
+      "error_rate": 0.05,
+      "rps": 52.2
+    },
+    "log_features": {
+      "error_count": 3,
+      "timeout_count": 70,
+      "keywords": [
+        "timeout"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> timeout"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "cart"
+      ],
+      "bottleneck_service": "cart"
+    },
+    "root_cause_service": "cart",
+    "root_cause_type": "latency_spike",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact latency_spike symptoms."
+  },
+  {
+    "scenario_id": "isolated-frontend-002",
+    "target_service": "frontend",
+    "error_type": "code_bug",
+    "metric_features": {
+      "latency_ms": 260.41999999999996,
+      "error_rate": 0.05,
+      "rps": 93.0
+    },
+    "log_features": {
+      "error_count": 5,
+      "timeout_count": 3,
+      "keywords": [
+        "syntax error"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> syntax error"
+    },
+    "trace": {
+      "path": [
+        "frontend"
+      ],
+      "bottleneck_service": "frontend"
+    },
+    "root_cause_service": "frontend",
+    "root_cause_type": "code_bug",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact code_bug symptoms."
+  },
+  {
+    "scenario_id": "cross-frontend-catalog-003",
+    "target_service": "frontend",
+    "error_type": "service_crash",
+    "metric_features": {
+      "latency_ms": 237.12,
+      "error_rate": 0.13,
+      "rps": 16.8
+    },
+    "log_features": {
+      "error_count": 18,
+      "timeout_count": 4,
+      "keywords": [
+        "connection refused"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> connection refused"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "catalog"
+      ],
+      "bottleneck_service": "catalog"
+    },
+    "root_cause_service": "catalog",
+    "root_cause_type": "service_crash",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact service_crash symptoms."
+  },
+  {
+    "scenario_id": "cross-cart-inventory-004",
+    "target_service": "cart",
+    "error_type": "latency_spike",
+    "metric_features": {
+      "latency_ms": 4358.87,
+      "error_rate": 0.05,
+      "rps": 61.8
+    },
+    "log_features": {
+      "error_count": 3,
+      "timeout_count": 50,
+      "keywords": [
+        "context deadline exceeded"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> context deadline exceeded"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "cart",
+        "inventory"
+      ],
+      "bottleneck_service": "inventory"
+    },
+    "root_cause_service": "inventory",
+    "root_cause_type": "latency_spike",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact latency_spike symptoms."
+  },
+  {
+    "scenario_id": "cross-cart-database-005",
+    "target_service": "cart",
+    "error_type": "disk_exhaustion",
+    "metric_features": {
+      "latency_ms": 228.42,
+      "error_rate": 0.05,
+      "rps": 81.7
+    },
+    "log_features": {
+      "error_count": 5,
+      "timeout_count": 3,
+      "keywords": [
+        "no space left on device"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> no space left on device"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "cart"
+      ],
+      "bottleneck_service": "cart"
+    },
+    "root_cause_service": "database",
+    "root_cause_type": "disk_exhaustion",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact disk_exhaustion symptoms."
+  },
+  {
+    "scenario_id": "cross-catalog-database-006",
+    "target_service": "catalog",
+    "error_type": "dependency_failure",
+    "metric_features": {
+      "latency_ms": 104.98,
+      "error_rate": 0.26,
+      "rps": 20.9
+    },
+    "log_features": {
+      "error_count": 10,
+      "timeout_count": 3,
+      "keywords": [
+        "connection refused: db"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> connection refused: db"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "catalog"
+      ],
+      "bottleneck_service": "catalog"
+    },
+    "root_cause_service": "database",
+    "root_cause_type": "dependency_failure",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact dependency_failure symptoms."
+  },
+  {
+    "scenario_id": "cross-catalog-cache-007",
+    "target_service": "catalog",
+    "error_type": "infrastructure_bottleneck",
+    "metric_features": {
+      "latency_ms": 146.69,
+      "error_rate": 0.05,
+      "rps": 97.6
+    },
+    "log_features": {
+      "error_count": 5,
+      "timeout_count": 2,
+      "keywords": [
+        "cache miss"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> cache miss"
+    },
+    "trace": {
+      "path": [
+        "recommendation",
+        "catalog"
+      ],
+      "bottleneck_service": "catalog"
+    },
+    "root_cause_service": "cache",
+    "root_cause_type": "infrastructure_bottleneck",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact infrastructure_bottleneck symptoms."
+  },
+  {
+    "scenario_id": "cross-payment-gateway-008",
+    "target_service": "payment",
+    "error_type": "dependency_failure",
+    "metric_features": {
+      "latency_ms": 163.36,
+      "error_rate": 0.53,
+      "rps": 17.9
+    },
+    "log_features": {
+      "error_count": 23,
+      "timeout_count": 2,
+      "keywords": [
+        "gateway timeout",
+        "503"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> gateway timeout"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "payment"
+      ],
+      "bottleneck_service": "payment"
+    },
+    "root_cause_service": "external-gateway",
+    "root_cause_type": "dependency_failure",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact dependency_failure symptoms."
+  },
+  {
+    "scenario_id": "isolated-payment-009",
+    "target_service": "payment",
+    "error_type": "logic_error",
+    "metric_features": {
+      "latency_ms": 170.63,
+      "error_rate": 0.76,
+      "rps": 19.1
+    },
+    "log_features": {
+      "error_count": 15,
+      "timeout_count": 4,
+      "keywords": [
+        "validation failed"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> validation failed"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "payment"
+      ],
+      "bottleneck_service": "payment"
+    },
+    "root_cause_service": "payment",
+    "root_cause_type": "logic_error",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact logic_error symptoms."
+  },
+  {
+    "scenario_id": "cross-payment-notification-010",
+    "target_service": "payment",
+    "error_type": "latency_spike",
+    "metric_features": {
+      "latency_ms": 4427.06,
+      "error_rate": 0.05,
+      "rps": 25.7
+    },
+    "log_features": {
+      "error_count": 3,
+      "timeout_count": 95,
+      "keywords": [
+        "queue timeout"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> queue timeout"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "payment",
+        "notification"
+      ],
+      "bottleneck_service": "notification"
+    },
+    "root_cause_service": "notification",
+    "root_cause_type": "latency_spike",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact latency_spike symptoms."
+  },
+  {
+    "scenario_id": "cross-auth-database-011",
+    "target_service": "auth",
+    "error_type": "deadlock",
+    "metric_features": {
+      "latency_ms": 177.72,
+      "error_rate": 0.05,
+      "rps": 44.3
+    },
+    "log_features": {
+      "error_count": 5,
+      "timeout_count": 4,
+      "keywords": [
+        "deadlock found"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> deadlock found"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "auth"
+      ],
+      "bottleneck_service": "auth"
+    },
+    "root_cause_service": "database",
+    "root_cause_type": "deadlock",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact deadlock symptoms."
+  },
+  {
+    "scenario_id": "isolated-auth-012",
+    "target_service": "auth",
+    "error_type": "resource_exhaustion",
+    "metric_features": {
+      "latency_ms": 67.67,
+      "error_rate": 0.05,
+      "rps": 53.8
+    },
+    "log_features": {
+      "error_count": 2,
+      "timeout_count": 3,
+      "keywords": [
+        "pool sizing"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> pool sizing"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "auth"
+      ],
+      "bottleneck_service": "auth"
+    },
+    "root_cause_service": "auth",
+    "root_cause_type": "resource_exhaustion",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact resource_exhaustion symptoms."
+  },
+  {
+    "scenario_id": "cross-recommendation-catalog-013",
+    "target_service": "recommendation",
+    "error_type": "service_crash",
+    "metric_features": {
+      "latency_ms": 190.43,
+      "error_rate": 0.15,
+      "rps": 69.4
+    },
+    "log_features": {
+      "error_count": 34,
+      "timeout_count": 0,
+      "keywords": [
+        "failed to fetch"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> failed to fetch"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "recommendation",
+        "catalog"
+      ],
+      "bottleneck_service": "catalog"
+    },
+    "root_cause_service": "catalog",
+    "root_cause_type": "service_crash",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact service_crash symptoms."
+  },
+  {
+    "scenario_id": "isolated-recommendation-014",
+    "target_service": "recommendation",
+    "error_type": "latency_spike",
+    "metric_features": {
+      "latency_ms": 3401.66,
+      "error_rate": 0.05,
+      "rps": 99.9
+    },
+    "log_features": {
+      "error_count": 0,
+      "timeout_count": 96,
+      "keywords": [
+        "inference delay"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> inference delay"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "recommendation"
+      ],
+      "bottleneck_service": "recommendation"
+    },
+    "root_cause_service": "recommendation",
+    "root_cause_type": "latency_spike",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact latency_spike symptoms."
+  },
+  {
+    "scenario_id": "cross-shipping-carrier-015",
+    "target_service": "shipping",
+    "error_type": "dependency_failure",
+    "metric_features": {
+      "latency_ms": 149.11,
+      "error_rate": 0.3,
+      "rps": 58.6
+    },
+    "log_features": {
+      "error_count": 47,
+      "timeout_count": 3,
+      "keywords": [
+        "429 Too Many Requests"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> 429 Too Many Requests"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "shipping"
+      ],
+      "bottleneck_service": "shipping"
+    },
+    "root_cause_service": "external-carrier",
+    "root_cause_type": "dependency_failure",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact dependency_failure symptoms."
+  },
+  {
+    "scenario_id": "isolated-shipping-016",
+    "target_service": "shipping",
+    "error_type": "config_error",
+    "metric_features": {
+      "latency_ms": 174.08,
+      "error_rate": 0.34,
+      "rps": 20.8
+    },
+    "log_features": {
+      "error_count": 45,
+      "timeout_count": 1,
+      "keywords": [
+        "unknown region"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> unknown region"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "shipping"
+      ],
+      "bottleneck_service": "shipping"
+    },
+    "root_cause_service": "shipping",
+    "root_cause_type": "config_error",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact config_error symptoms."
+  },
+  {
+    "scenario_id": "cross-notification-smtp-017",
+    "target_service": "notification",
+    "error_type": "dependency_failure",
+    "metric_features": {
+      "latency_ms": 198.12,
+      "error_rate": 0.3,
+      "rps": 50.1
+    },
+    "log_features": {
+      "error_count": 50,
+      "timeout_count": 3,
+      "keywords": [
+        "SMTP timeout"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> SMTP timeout"
+    },
+    "trace": {
+      "path": [
+        "payment",
+        "notification"
+      ],
+      "bottleneck_service": "notification"
+    },
+    "root_cause_service": "smtp",
+    "root_cause_type": "dependency_failure",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact dependency_failure symptoms."
+  },
+  {
+    "scenario_id": "isolated-notification-018",
+    "target_service": "notification",
+    "error_type": "poison_pill",
+    "metric_features": {
+      "latency_ms": 185.17,
+      "error_rate": 0.05,
+      "rps": 58.8
+    },
+    "log_features": {
+      "error_count": 0,
+      "timeout_count": 4,
+      "keywords": [
+        "invalid type"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> invalid type"
+    },
+    "trace": {
+      "path": [
+        "shipping",
+        "notification"
+      ],
+      "bottleneck_service": "notification"
+    },
+    "root_cause_service": "notification",
+    "root_cause_type": "poison_pill",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact poison_pill symptoms."
+  },
+  {
+    "scenario_id": "isolated-inventory-019",
+    "target_service": "inventory",
+    "error_type": "latency_spike",
+    "metric_features": {
+      "latency_ms": 4675.03,
+      "error_rate": 0.05,
+      "rps": 41.4
+    },
+    "log_features": {
+      "error_count": 0,
+      "timeout_count": 45,
+      "keywords": [
+        "slow query"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> slow query"
+    },
+    "trace": {
+      "path": [
+        "cart",
+        "inventory"
+      ],
+      "bottleneck_service": "inventory"
+    },
+    "root_cause_service": "inventory",
+    "root_cause_type": "latency_spike",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact latency_spike symptoms."
+  },
+  {
+    "scenario_id": "cross-inventory-database-020",
+    "target_service": "inventory",
+    "error_type": "crash",
+    "metric_features": {
+      "latency_ms": 64.92,
+      "error_rate": 0.89,
+      "rps": 63.9
+    },
+    "log_features": {
+      "error_count": 22,
+      "timeout_count": 0,
+      "keywords": [
+        "connection refused"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> connection refused"
+    },
+    "trace": {
+      "path": [
+        "catalog",
+        "inventory"
+      ],
+      "bottleneck_service": "inventory"
+    },
+    "root_cause_service": "database",
+    "root_cause_type": "crash",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact crash symptoms."
+  },
+  {
+    "scenario_id": "cross-frontend-cart-001-var0",
+    "target_service": "frontend",
+    "error_type": "latency_spike",
+    "metric_features": {
+      "latency_ms": 4664.5,
+      "error_rate": 0.05,
+      "rps": 52.2
+    },
+    "log_features": {
+      "error_count": 3,
+      "timeout_count": 70,
+      "keywords": [
+        "timeout"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> timeout"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "cart"
+      ],
+      "bottleneck_service": "cart"
+    },
+    "root_cause_service": "cart",
+    "root_cause_type": "latency_spike",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact latency_spike symptoms."
+  },
+  {
+    "scenario_id": "isolated-frontend-002-var1",
+    "target_service": "frontend",
+    "error_type": "code_bug",
+    "metric_features": {
+      "latency_ms": 260.41999999999996,
+      "error_rate": 0.05,
+      "rps": 93.0
+    },
+    "log_features": {
+      "error_count": 5,
+      "timeout_count": 3,
+      "keywords": [
+        "syntax error"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> syntax error"
+    },
+    "trace": {
+      "path": [
+        "frontend"
+      ],
+      "bottleneck_service": "frontend"
+    },
+    "root_cause_service": "frontend",
+    "root_cause_type": "code_bug",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact code_bug symptoms."
+  },
+  {
+    "scenario_id": "cross-frontend-catalog-003-var2",
+    "target_service": "frontend",
+    "error_type": "service_crash",
+    "metric_features": {
+      "latency_ms": 237.12,
+      "error_rate": 0.13,
+      "rps": 16.8
+    },
+    "log_features": {
+      "error_count": 18,
+      "timeout_count": 4,
+      "keywords": [
+        "connection refused"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> connection refused"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "catalog"
+      ],
+      "bottleneck_service": "catalog"
+    },
+    "root_cause_service": "catalog",
+    "root_cause_type": "service_crash",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact service_crash symptoms."
+  },
+  {
+    "scenario_id": "cross-cart-inventory-004-var3",
+    "target_service": "cart",
+    "error_type": "latency_spike",
+    "metric_features": {
+      "latency_ms": 4358.87,
+      "error_rate": 0.05,
+      "rps": 61.8
+    },
+    "log_features": {
+      "error_count": 3,
+      "timeout_count": 50,
+      "keywords": [
+        "context deadline exceeded"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> context deadline exceeded"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "cart",
+        "inventory"
+      ],
+      "bottleneck_service": "inventory"
+    },
+    "root_cause_service": "inventory",
+    "root_cause_type": "latency_spike",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact latency_spike symptoms."
+  },
+  {
+    "scenario_id": "cross-cart-database-005-var4",
+    "target_service": "cart",
+    "error_type": "disk_exhaustion",
+    "metric_features": {
+      "latency_ms": 228.42,
+      "error_rate": 0.05,
+      "rps": 81.7
+    },
+    "log_features": {
+      "error_count": 5,
+      "timeout_count": 3,
+      "keywords": [
+        "no space left on device"
+      ],
+      "sample_log": "WARN: Issue observed during scenario -> no space left on device"
+    },
+    "trace": {
+      "path": [
+        "frontend",
+        "cart"
+      ],
+      "bottleneck_service": "cart"
+    },
+    "root_cause_service": "database",
+    "root_cause_type": "disk_exhaustion",
+    "confidence_hint": "High",
+    "reasoning": "Generated trace mapped to exact disk_exhaustion symptoms."
+  }
+]

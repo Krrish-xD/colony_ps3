@@ -1,0 +1,94 @@
+version: '3.8'
+
+networks:
+  colony-net:
+    driver: bridge
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    networks:
+      - colony-net
+    ports:
+      - "4318:4318" # OTLP HTTP
+
+  auth:
+    build: ./services/auth
+    ports:
+      - "8002:8000"
+    networks:
+      - colony-net
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+
+  frontend:
+    build: ./services/frontend
+    ports:
+      - "8001:8000"
+    networks:
+      - colony-net
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+
+  catalog:
+    build: ./services/catalog
+    ports:
+      - "8003:8000"
+    networks:
+      - colony-net
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+
+  cart:
+    build: ./services/cart
+    ports:
+      - "8004:8000"
+    networks:
+      - colony-net
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+
+  inventory:
+    build: ./services/inventory
+    ports:
+      - "8005:8000"
+    networks:
+      - colony-net
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+
+  payment:
+    build: ./services/payment
+    ports:
+      - "8006:8000"
+    networks:
+      - colony-net
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+
+  shipping:
+    build: ./services/shipping
+    ports:
+      - "8007:8000"
+    networks:
+      - colony-net
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+
+  recommendation:
+    build: ./services/recommendation
+    ports:
+      - "8008:8000"
+    networks:
+      - colony-net
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+
+  notification:
+    build: ./services/notification
+    ports:
+      - "8009:8000"
+    networks:
+      - colony-net
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
