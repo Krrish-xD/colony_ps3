@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colony PS3 — Demo Control Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030712;
+            --surface: #111827;
+            --surface-hover: #1f2937;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --red: #ef4444;
+            --red-hover: #dc2828;
+            --yellow: #eab308;
+            --yellow-hover: #ca8a04;
+            --green: #22c55e;
+            --border: #374151;
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Section 1: Header */
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin: 0 0 1.5rem 0;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--red);
+            box-shadow: 0 0 8px var(--red);
+        }
+
+        .dot.connected {
+            background-color: var(--green);
+            box-shadow: 0 0 8px var(--green);
+        }
+
+        /* Common Panel Style */
+        .panel {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Section 2: Traffic Control */
+        .traffic-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        input {
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1rem;
+            width: 120px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+            flex-grow: 1;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background-color: transparent;
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+
+        .btn-danger:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(3, 7, 18, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .countdown-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .countdown-number {
+            font-size: 12rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Section 3: Chaos Injection */
+        .chaos-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr 1fr 1fr;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .chaos-row {
+            display: contents;
+        }
+
+        .service-label {
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .chaos-btn {
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            border-radius: 4px;
+            background-color: var(--surface-hover);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .chaos-btn:hover {
+            filter: brightness(1.2);
+            transform: translateY(-1px);
+        }
+
+        .chaos-btn.crash {
+            border-left: 3px solid var(--red);
+        }
+
+        .chaos-btn.timeout {
+            border-left: 3px solid var(--yellow);
+        }
+
+        .chaos-btn.error {
+            border-left: 3px solid var(--text-muted);
+        }
+
+        /* Animation class for flashes */
+        @keyframes flash-green {
+            0% {
+                background-color: rgba(34, 197, 94, 0.5);
+            }
+
+            100% {
+                background-color: var(--surface-hover);
+            }
+        }
+
+        @keyframes flash-red {
+            0% {
+                background-color: rgba(239, 68, 68, 0.5);
+            }
+
+            100% {
+                background-color: var(--surface-hover);
+            }
+        }
+
+        .flash-success {
+            animation: flash-green 1s ease;
+        }
+
+        .flash-error {
+            animation: flash-red 1s ease;
+        }
+
+        /* Section 4: Event Log */
+        .terminal {
+            background-color: #000;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            color: #a3be8c;
+            height: 250px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin-bottom: 0.25rem;
+            line-height: 1.4;
+        }
+
+        .log-time {
+            color: #81a1c1;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Colony PS3 — Demo Control Panel</h1>
+            <h2>Real-Time AI Observability & Auto-Remediation System</h2>
+            <div class="status-badge" id="locust-status">
+                <div class="dot" id="status-dot"></div>
+                <span id="status-text">Locust Disconnected</span>
+            </div>
+        </header>
+
+        <div class="panel">
+            <h3 class="panel-title">Traffic Control</h3>
+            <div class="traffic-controls">
+                <div class="input-group">
+                    <label for="user-count">Number of Users</label>
+                    <input type="number" id="user-count" value="50" min="1">
+                </div>
+                <div class="input-group">
+                    <label for="delay-sec">Delay (seconds)</label>
+                    <input type="number" id="delay-sec" value="5" min="0">
+                </div>
+                <button class="btn-primary" onclick="scheduleLoad()">🚀 Schedule Load</button>
+                <button class="btn-danger" onclick="stopTraffic()">🛑 Stop All Traffic</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3 class="panel-title">Chaos Injection</h3>
+            <div class="chaos-grid" id="chaos-container">
+                <!-- Headers -->
+                <div style="font-weight: 500; color: var(--text-muted); padding-bottom: 0.5rem;">Target Service</div>
+                <div style="font-weight: 500; color: var(--text-muted); padding-bottom: 0.5rem; text-align: center;">
+                    Severe</div>
+                <div style="font-weight: 500; color: var(--text-muted); padding-bottom: 0.5rem; text-align: center;">
+                    Moderate</div>
+                <div style="font-weight: 500; color: var(--text-muted); padding-bottom: 0.5rem; text-align: center;">
+                    Mild</div>
+
+                <!-- Rows injected by JS -->
+            </div>
+        </div>
+
+        <div class="panel" style="padding: 0;">
+            <div class="terminal" id="event-log"></div>
+        </div>
+    </div>
+
+    <div class="countdown-overlay" id="countdown-overlay">
+        <div class="countdown-number" id="countdown-display">5</div>
+    </div>
+
+    <script>
+        // Configuration
+        const LOCUST_API = "http://localhost:8089";
+        const TARGET_HOST = "http://frontend-service:8001";
+
+        const SERVICES = [
+            { name: "auth-service", port: 8002 },
+            { name: "catalog-service", port: 8003 },
+            { name: "cart-service", port: 8004 },
+            { name: "payment-service", port: 8006 },
+            { name: "shipping-service", port: 8007 },
+            { name: "recommendation-service", port: 8008 },
+            { name: "notification-service", port: 8009 }
+        ];
+
+        // DOM Elements
+        const terminal = document.getElementById('event-log');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const countdownOverlay = document.getElementById('countdown-overlay');
+        const countdownDisplay = document.getElementById('countdown-display');
+
+        // Logging Utility
+        function logEvent(message) {
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0]; // HH:MM:SS
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">[${timeStr}]</span> ${message}`;
+            terminal.appendChild(entry);
+            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll
+        }
+
+        // Status Polling
+        async function checkLocustStatus() {
+            try {
+                // Using /stats/requests to verify it's up
+                const res = await fetch(`${LOCUST_API}/stats/requests`);
+                if (res.ok) {
+                    statusDot.classList.add('connected');
+                    statusText.innerText = "Locust Connected";
+                } else {
+                    throw new Error("Bad status");
+                }
+            } catch (e) {
+                statusDot.classList.remove('connected');
+                statusText.innerText = "Locust Disconnected";
+            }
+        }
+
+        setInterval(checkLocustStatus, 2000);
+        checkLocustStatus();
+
+        // Traffic Control Logic
+        let countdownInterval;
+
+        function scheduleLoad() {
+            const users = document.getElementById('user-count').value;
+            const delay = parseInt(document.getElementById('delay-sec').value);
+
+            logEvent(`🚀 Scheduled ${users} users in ${delay} seconds`);
+
+            if (delay === 0) {
+                startTraffic(users);
+                return;
+            }
+
+            let currentCount = delay;
+            countdownDisplay.innerText = currentCount;
+            countdownOverlay.classList.add('active');
+
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                currentCount--;
+                countdownDisplay.innerText = currentCount;
+                if (currentCount <= 0) {
+                    clearInterval(countdownInterval);
+                    setTimeout(() => {
+                        countdownOverlay.classList.remove('active');
+                        startTraffic(users);
+                    }, 500);
+                }
+            }, 1000);
+        }
+
+        async function startTraffic(users) {
+            try {
+                const formData = new URLSearchParams();
+                formData.append('user_count', users);
+                formData.append('spawn_rate', '10');
+                formData.append('host', TARGET_HOST);
+
+                await fetch(`${LOCUST_API}/swarm`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString()
+                });
+                logEvent(`✅ Traffic started — ${users} users spawning at 10/s`);
+            } catch (e) {
+                logEvent(`❌ Failed to start traffic: ${e.message}`);
+            }
+        }
+
+        async function stopTraffic() {
+            try {
+                await fetch(`${LOCUST_API}/stop`);
+                logEvent(`🛑 Traffic stopped`);
+
+                // If stopped during countdown
+                clearInterval(countdownInterval);
+                countdownOverlay.classList.remove('active');
+            } catch (e) {
+                logEvent(`❌ Failed to stop traffic: ${e.message}`);
+            }
+        }
+
+        // Chaos Grid Generation & Logic
+        const chaosContainer = document.getElementById('chaos-container');
+
+        async function injectFault(btn, serviceName, port, faultType, icon) {
+            // Reset animation
+            btn.classList.remove('flash-success', 'flash-error');
+            void btn.offsetWidth; // trigger reflow
+
+            const url = `http://localhost:${port}/fault/${faultType}`;
+            logEvent(`${icon} ${faultType.charAt(0).toUpperCase() + faultType.slice(1)} injected → ${serviceName}:${port}`);
+
+            try {
+                await fetch(url, { mode: 'no-cors' });
+                btn.classList.add('flash-success');
+            } catch (e) {
+                btn.classList.add('flash-error');
+                logEvent(`⚠️ Network error reaching ${serviceName}:${port} (It might be dead)`);
+            }
+        }
+
+        SERVICES.forEach(svc => {
+            // Label
+            const label = document.createElement('div');
+            label.className = 'service-label';
+            label.innerText = `${svc.name}:${svc.port}`;
+            chaosContainer.appendChild(label);
+
+            // Crash
+            const btnCrash = document.createElement('button');
+            btnCrash.className = 'chaos-btn crash';
+            btnCrash.innerHTML = '🔴 Crash';
+            btnCrash.onclick = (e) => injectFault(e.currentTarget, svc.name, svc.port, 'crash', '🔴');
+            chaosContainer.appendChild(btnCrash);
+
+            // Timeout
+            const btnTimeout = document.createElement('button');
+            btnTimeout.className = 'chaos-btn timeout';
+            btnTimeout.innerHTML = '🟡 Timeout';
+            btnTimeout.onclick = (e) => injectFault(e.currentTarget, svc.name, svc.port, 'timeout', '🟡');
+            chaosContainer.appendChild(btnTimeout);
+
+            // Error
+            const btnError = document.createElement('button');
+            btnError.className = 'chaos-btn error';
+            btnError.innerHTML = '❌ Error';
+            btnError.onclick = (e) => injectFault(e.currentTarget, svc.name, svc.port, 'error', '❌');
+            chaosContainer.appendChild(btnError);
+        });
+
+        // Initial Log
+        logEvent("SYSTEM INITIALIZED. Awaiting commands.");
+
+    </script>
+</body>
+
+</html>
