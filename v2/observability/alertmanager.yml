@@ -1,0 +1,15 @@
+route:
+  group_by: ['alertname', 'service']
+  group_wait: 0s          # v2: instant dispatch (was 1s in v1)
+  group_interval: 10s
+  repeat_interval: 2m
+  receiver: 'rca-engine-webhook'
+
+receivers:
+  - name: 'rca-engine-webhook'
+    webhook_configs:
+      # intelligence = the RCA engine container on the same colony-net network
+      - url: 'http://intelligence:5000/alert'
+        send_resolved: true
+        http_config:
+          timeout: 3s
