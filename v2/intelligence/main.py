@@ -7,6 +7,7 @@ import json
 import torch
 import numpy as np
 from fastapi import FastAPI, BackgroundTasks, Request
+from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 
 from evidence_chain import build_evidence_chain
@@ -320,3 +321,17 @@ async def train_model(background_tasks: BackgroundTasks):
 
     background_tasks.add_task(run_training)
     return {"status": "retraining started in background"}
+
+
+class HealthResultRequest(BaseModel):
+    incident_id: int
+    service: str
+    was_successful: bool
+
+
+@app.post("/health_result")
+def receive_health_result(request: HealthResultRequest):
+    """Called by the remediation engine to report whether a restart fixed the issue."""
+    fingerprint_store.mark_success(request.incident_id, request.was_successful)
+    logger.info(f"Health result for incident #{request.incident_id} ({request.service}): {'success' if request.was_successful else 'failed'}")
+    return {"status": "recorded"}
