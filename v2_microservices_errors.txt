@@ -1,0 +1,82 @@
+Colony PS3 v2 Microservices: CPU and RAM Errors Reference
+
+1. frontend-service
+   [CPU] Template Rendering Crash
+   Why: A malformed incoming request string forces the templating engine into an infinite parsing loop.
+   Log Output: FATAL [frontend] thread panicked: max CPU time exceeded during template parsing (100% utilization)
+
+   [RAM] Memory Leak on Session Objects
+   Why: The frontend server caches unclosed web sockets, slowly exhausting process limits.
+   Log Output: FATAL [frontend] V8 JavaScript heap out of memory
+
+2. auth-service
+   [CPU] Cryptographic Overload Crash
+   Why: A spike in simultaneous logins exhausts CPU cores due to expensive bcrypt hashing.
+   Log Output: FATAL [auth] Bcrypt hash calculation timeout: authentication worker threads deadlocked
+
+   [RAM] Token Cache OOM Crash
+   Why: JWT tokens are generated but never evicted from the local in-memory tracking map.
+   Log Output: FATAL [auth.cache] runtime error: cannot allocate memory for map[string]SessionToken
+
+3. catalog-service
+   [CPU] Regex Backtracking CPU Crash
+   Why: A complex wildcard search query triggers catastrophic backtracking in the database query engine.
+   Log Output: ERROR [catalog.search] panic: CPU timeout exceeded matching regex against product descriptions
+
+   [RAM] Large ResultSet Exhaustion
+   Why: An API accidentally attempts to pull all items into a single unpaginated array.
+   Log Output: FATAL [catalog.api] java.lang.OutOfMemoryError: Java heap space fetching products
+
+4. cart-service
+   [CPU] Thread Spin Crash
+   Why: Concurrency bugs when two users access a shared cart, locking a mutex endlessly.
+   Log Output: FATAL [cart] Thread deadlocked spinning on sync.Mutex from high CPU contention
+
+   [RAM] Array Expansion Error
+   Why: Adding huge payloads of items to the cart exceeds limit buffers.
+   Log Output: FATAL [cart] Python memory allocation failed: unable to allocate 1048576 bytes
+
+5. inventory-service
+   [CPU] Loop Saturation Crash
+   Why: A recursive function attempting to reconcile split inventory records loses its base case.
+   Log Output: FATAL [inventory] Epoll wait CPU spike: process killed by python watchdog
+
+   [RAM] Transaction Buffer Crash
+   Why: Huge bursts of reserve-stock commands fill up the underlying database transaction buffers.
+   Log Output: ERROR [inventory] Out of memory: killed process (mysql-buffer-pool)
+
+6. payment-service
+   [CPU] Fraud Filter CPU Spike
+   Why: The internal fraud checking algorithm stalls interpreting an edge-case transaction.
+   Log Output: WARN [payment] Thread dumped: Fraud inference model took 100% CPU on Core 0
+
+   [RAM] Batch Processing OOM
+   Why: The nightly settlement batch process tries to load too many clearing records into memory.
+   Log Output: FATAL [payment.batch] panic: runtime error: out of memory allocating batch chunk
+
+7. shipping-service
+   [CPU] Routing Algorithm Crash
+   Why: Calculating the optimal delivery route runs into an infinite loop bug.
+   Log Output: FATAL [shipping.routing] maximum recursion depth exceeded in distance_matrix_calc
+
+   [RAM] Payload Deserialization Leak
+   Why: Extremely large JSON responses from the FedEx/UPS APIs are stored in a memory-leaking data structure.
+   Log Output: FATAL [shipping] heap limits exceeded allocating HTTP response buffer container
+
+8. recommendation-service
+   [CPU] Matrix Multiplication Overload
+   Why: A sudden influx of users requires real-time matrix factorization, completely blocking the core thread.
+   Log Output: ERROR [recommender.model] Tensor allocation stalled: CPU worker thread blocked for 60s
+
+   [RAM] Model Base Checkpoint OOM
+   Why: The service attempts to hot-swap a 4GB base model into RAM before releasing the previous 4GB model.
+   Log Output: FATAL [recommender] failed to map physical segment from shared object: Cannot allocate memory
+
+9. notification-service
+   [CPU] SMTP Retry Storm Crash
+   Why: Network instability causes the retry-loop logic to rapidly spin without sleeping.
+   Log Output: FATAL [notification] Task thread pool exhausted by runaway CPU polling loop
+
+   [RAM] Email Queue Block OOM
+   Why: The downstream email provider rejects connections, causing outbound templates to accumulate in memory.
+   Log Output: FATAL [notification.queue] java.lang.OutOfMemoryError: failed to append to LinkedBlockingQueue
