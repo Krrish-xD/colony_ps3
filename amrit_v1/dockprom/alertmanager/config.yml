@@ -1,0 +1,12 @@
+route:
+    receiver: 'intelligence-webhook'
+    group_by: ['alertname', 'job']
+    group_wait: 1s
+    group_interval: 2s
+    repeat_interval: 5s
+
+receivers:
+    - name: 'intelligence-webhook'
+      webhook_configs:
+          - url: 'http://intelligence:8000/alert'
+            send_resolved: true

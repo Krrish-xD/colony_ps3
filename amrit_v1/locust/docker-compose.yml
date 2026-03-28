@@ -1,0 +1,22 @@
+version: '3'
+services:
+  locust:
+    image: locustio/locust
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./locustfile.py:/mnt/locust/locustfile.py
+    command: -f /mnt/locust/locustfile.py --host=http://edge-router:80
+    networks:
+      - monitor-net
+      - app-net
+    labels:
+      org.label-schema.group: "monitoring"
+
+networks:
+  monitor-net:
+    external: true
+    name: dockprom_monitor-net
+  app-net:
+    external: true
+    name: docker-compose_default

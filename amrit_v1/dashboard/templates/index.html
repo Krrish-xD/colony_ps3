@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Observability | Tech Solstice</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <header class="glass-panel main-header">
+            <div>
+                <h1>Autonomous AI Observability</h1>
+                <p class="subtitle">Distributed Hackathon System • Live Monitoring</p>
+            </div>
+            
+            <div class="timer-node" id="timer-box">
+                <span id="resolution-time">00.00s</span>
+                <span class="timer-label">Remediation SLA</span>
+            </div>
+            
+            <button id="chaos-btn" class="chaos-button">
+                <span class="btn-icon">⚡</span> Inject Anomaly
+            </button>
+        </header>
+
+        <div class="content-grid">
+            <section class="glass-panel service-grid-container">
+                <h2>Architecture Health</h2>
+                <div class="service-grid" id="service-grid">
+                    <!-- Javascript populates standard Sock Shop services here -->
+                </div>
+            </section>
+
+            <section class="glass-panel console-container">
+                <div class="console-header">
+                    <h2>AI Brain Inference</h2>
+                    <span class="status-badge" id="ai-status">Monitoring...</span>
+                </div>
+                
+                <div class="console-box" id="console-box">
+                    <p class="console-line text-grey">Syslog Connected. NLP and LSTM initialized...</p>
+                </div>
+            </section>
+        </div>
+    </div>
+    
+    <script src="/static/app.js"></script>
+</body>
+</html>
