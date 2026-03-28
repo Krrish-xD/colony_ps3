@@ -8,7 +8,7 @@ import os
 app = FastAPI()
 
 COOLDOWN_CACHE = {}
-COOLDOWN_SECONDS = 30
+COOLDOWN_SECONDS = 120
 DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "http://dashboard:3000/api/events")
 
 # Fail fast if docker socket is not available
@@ -25,10 +25,23 @@ from fastapi import BackgroundTasks
 def execute_remediation(target: str, root_cause: str, confidence: float, current_time: float):
     # Execute docker restart (synchronous)
     try:
-        client.containers.get(target).restart()
-        COOLDOWN_CACHE[target] = current_time
+        containers = client.containers.list(all=True)
+        target_container = None
+        for c in containers:
+            if target in c.name and "db" not in c.name and "user-sim" not in c.name:
+                target_container = c
+                break
+                
+        if target_container:
+            print(f"Target Acquired: {target_container.name}. Triggering API RESTART...")
+            target_container.restart(timeout=5)
+            COOLDOWN_CACHE[target] = current_time
+        else:
+            print(f"Container matching '{target}' not found locally.")
+            return
+
     except Exception as e:
-        print(f"Failed to restart {target}: {e}")
+        print(f"API Error during remediation of {target}: {e}")
         return
 
     # Push event to dashboard

@@ -1,77 +1,14 @@
+version: '3.8'
+
 networks:
-  observability-network:
-    driver: bridge
+  monitor-net:
+    external: true
+    name: dockprom_monitor-net
 
 services:
   # ==========================================
-  # OBSERVABILITY STACK
-  # ==========================================
-
-  otel-collector:
-    image: otel/opentelemetry-collector:0.87.0
-    command: [ "--config=/etc/otel-collector-config.yaml" ]
-    volumes:
-      - ../observability/otel-collector-config.yaml:/etc/otel-collector-config.yaml
-    ports:
-      - "4318:4318" # OTLP HTTP receiver
-    networks:
-      - observability-network
-    depends_on:
-      - prometheus
-      - loki
-      - jaeger
-
-  prometheus:
-    image: prom/prometheus:v2.47.2
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--web.enable-lifecycle'
-    volumes:
-      - ../observability/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ../observability/rules.yml:/etc/prometheus/rules.yml
-    ports:
-      - "9090:9090"
-    networks:
-      - observability-network
-
-  alertmanager:
-    image: prom/alertmanager:v0.26.0
-    command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-    volumes:
-      - ../observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml
-    ports:
-      - "9093:9093"
-    networks:
-      - observability-network
-    depends_on:
-      - intelligence
-      - prometheus
-
-  loki:
-    image: grafana/loki:2.9.2
-    ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/loki-config.yaml
-    volumes:
-      - ../observability/loki-config.yaml:/etc/loki/loki-config.yaml
-    networks:
-      - observability-network
-
-  jaeger:
-    image: jaegertracing/all-in-one:1.50
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
-    ports:
-      - "16686:16686"
-      - "4317"
-    networks:
-      - observability-network
-
-  # ==========================================
   # INTELLIGENCE / RCA ENGINE
   # ==========================================
-
   intelligence:
     build:
       context: ../intelligence
@@ -83,119 +20,35 @@ services:
       - REMEDIATION_URL=http://remediation:8001
       - DASHBOARD_URL=http://dashboard:3000
     networks:
-      - observability-network
-    depends_on:
-      - otel-collector
-      - loki
-      - jaeger
-      - prometheus
+      - monitor-net
 
   # ==========================================
   # REMEDIATION ENGINE
   # ==========================================
-
   remediation:
     build:
       context: ../remediation
     ports:
       - "8001:8001"
     environment:
-      - DASHBOARD_URL=http://dashboard:3000
+      - DASHBOARD_URL=http://dashboard:3000/api/events
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - observability-network
+      - monitor-net
     depends_on:
       - dashboard
 
   # ==========================================
-  # DASHBOARD UI
+  # DASHBOARD UI (AMRIT'S FRONTEND)
   # ==========================================
-
   dashboard:
     build:
       context: ../dashboard
     ports:
-      - "3000:3000"
-    environment:
-      - JAEGER_URL=http://jaeger:16686
+      - "5001:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - observability-network
-    depends_on:
-      - jaeger
+      - monitor-net
 
-  # ==========================================
-  # APPLICATION MICROSERVICES
-  # ==========================================
-
-  frontend-service:
-    build:
-      context: ../services/frontend-service
-    ports:
-      - "8080:8080"
-    environment:
-      - AUTH_URL=http://auth-service:8081
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-    networks:
-      - observability-network
-    depends_on:
-      - auth-service
-      - otel-collector
-
-  auth-service:
-    build:
-      context: ../services/auth-service
-    ports:
-      - "8081:8081"
-    environment:
-      - CART_URL=http://cart-service:8082
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-    networks:
-      - observability-network
-    depends_on:
-      - cart-service
-      - otel-collector
-
-  cart-service:
-    build:
-      context: ../services/cart-service
-    ports:
-      - "8082:8082"
-    environment:
-      - PAYMENT_URL=http://payment-service:8083
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-    networks:
-      - observability-network
-    depends_on:
-      - payment-service
-      - otel-collector
-
-  payment-service:
-    build:
-      context: ../services/payment-service
-    ports:
-      - "8083:8083"
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-    networks:
-      - observability-network
-    depends_on:
-      - otel-collector
-
-  # ==========================================
-  # TRAFFIC & CHAOS GENERATOR
-  # ==========================================
-
-  chaos:
-    build:
-      context: ../chaos
-    environment:
-      - FRONTEND_URL=http://frontend-service:8080
-      - CART_URL=http://cart-service:8082
-      - PAYMENT_URL=http://payment-service:8083
-    networks:
-      - observability-network
-    depends_on:
-      - frontend-service
-      - cart-service
-      - payment-service

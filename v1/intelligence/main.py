@@ -9,12 +9,12 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 async def process_alert(service_name: str):
-    logger.info(f"Anomaly detected on {service_name}. Waiting 3s for telemetry ingestion...")
-    await asyncio.sleep(3)
+    logger.info(f"Anomaly detected on {service_name}. Waiting 1s for telemetry ingestion...")
+    await asyncio.sleep(1)
 
     # Scope strictly to start=now-15s using epoch nanoseconds
     start_time_ns = time.time_ns() - (15 * 1_000_000_000)
-    query = f'{{service_name="{service_name}"}} |= "error" | json'
+    query = f'{{container=~".*{service_name}.*"}} |= "error"'
 
     root_cause = "Unknown Error"
     confidence = 0.50
@@ -92,8 +92,11 @@ async def handle_alert(request: Request, background_tasks: BackgroundTasks):
     if payload.get("status") == "firing":
         for alert in payload.get("alerts", []):
             labels = alert.get("labels", {})
+            if labels.get("alertname") != "monitor_service_down":
+                continue # Ignore generic host cpu/memory load alerts
+                
             # Handle different common label naming conventions
-            service_name = labels.get("service") or labels.get("compose_service") or labels.get("app")
+            service_name = labels.get("service") or labels.get("compose_service") or labels.get("app") or labels.get("job")
             if service_name:
                 background_tasks.add_task(process_alert, service_name)
 
