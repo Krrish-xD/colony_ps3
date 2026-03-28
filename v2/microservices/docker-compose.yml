@@ -1,0 +1,123 @@
+version: '3.8'
+
+networks:
+  colony-net:
+    external: true
+
+services:
+  frontend-service:
+    build:
+      context: ./frontend-service
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - SERVICE_NAME=frontend-service
+      - DOWNSTREAM_URL=http://auth-service:8002
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - SERVICE_NAME=auth-service
+      - DOWNSTREAM_URL=http://catalog-service:8003
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+
+  catalog-service:
+    build:
+      context: ./catalog-service
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8003"
+    environment:
+      - SERVICE_NAME=catalog-service
+      - DOWNSTREAM_URL=http://inventory-service:8005
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+
+  cart-service:
+    build:
+      context: ./cart-service
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8004"
+    environment:
+      - SERVICE_NAME=cart-service
+      - DOWNSTREAM_URL=http://catalog-service:8003
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+
+  inventory-service:
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    ports:
+      - "8005:8005"
+    environment:
+      - SERVICE_NAME=inventory-service
+      - DOWNSTREAM_URL=
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    ports:
+      - "8006:8006"
+    environment:
+      - SERVICE_NAME=payment-service
+      - DOWNSTREAM_URL=http://notification-service:8009
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+
+  shipping-service:
+    build:
+      context: ./shipping-service
+      dockerfile: Dockerfile
+    ports:
+      - "8007:8007"
+    environment:
+      - SERVICE_NAME=shipping-service
+      - DOWNSTREAM_URL=http://inventory-service:8005
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+
+  recommendation-service:
+    build:
+      context: ./recommendation-service
+      dockerfile: Dockerfile
+    ports:
+      - "8008:8008"
+    environment:
+      - SERVICE_NAME=recommendation-service
+      - DOWNSTREAM_URL=http://catalog-service:8003
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    ports:
+      - "8009:8009"
+    environment:
+      - SERVICE_NAME=notification-service
+      - DOWNSTREAM_URL=
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net

@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM public.ecr.aws/docker/library/python:3.11-slim
 
 # IMPORTANT: For GPU support, the actual deployment should use nvidia/cuda:12.1.0-runtime-ubuntu22.04
 # as base image instead, with `pip install torch --index-url https://download.pytorch.org/whl/cu121`.
@@ -10,7 +10,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY *.whl ./
+RUN pip install --no-index --find-links . -r requirements.txt
 
 COPY . .
 
