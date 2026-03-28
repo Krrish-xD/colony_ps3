@@ -82,31 +82,45 @@ def compute_blast_radius(failing_service: str) -> dict:
 
 # Signal Collection
 async def query_loki(service: str, window_seconds: int = 15, limit: int = 50) -> list[str]:
-    start_time_ns = time.time_ns() - (window_seconds * 1_000_000_000)
+    # Retry mechanism: 3-second micro-buffer (6 attempts x 0.5s) to bypass ingestion latency
+    max_attempts = 6
+    sleep_interval = 0.5
+
     query = f'{{app="{service}"}} | json'
 
     async with httpx.AsyncClient(timeout=2.0) as client:
-        try:
-            resp = await client.get(
-                "http://loki:3100/loki/api/v1/query_range",
-                params={"query": query, "start": str(start_time_ns), "limit": limit}
-            )
-            resp.raise_for_status()
-            data = resp.json()
+        for attempt in range(max_attempts):
+            start_time_ns = time.time_ns() - (window_seconds * 1_000_000_000)
+            try:
+                resp = await client.get(
+                    "http://loki:3100/loki/api/v1/query_range",
+                    params={"query": query, "start": str(start_time_ns), "limit": limit}
+                )
+                resp.raise_for_status()
+                data = resp.json()
 
-            logs = []
-            results = data.get("data", {}).get("result", [])
-            for result in results:
-                for val in result.get("values", []):
-                    try:
-                        log_obj = json.loads(val[1])
-                        logs.append(log_obj.get("message", val[1]))
-                    except json.JSONDecodeError:
-                        logs.append(val[1])
-            return logs
-        except Exception as e:
-            logger.error(f"Failed querying Loki for {service}: {e}")
-            return []
+                logs = []
+                results = data.get("data", {}).get("result", [])
+
+                if results:
+                    for result in results:
+                        for val in result.get("values", []):
+                            try:
+                                log_obj = json.loads(val[1])
+                                logs.append(log_obj.get("message", val[1]))
+                            except json.JSONDecodeError:
+                                logs.append(val[1])
+                    return logs
+
+                # If no logs found, sleep and retry
+                logger.info(f"Loki query empty for {service}, retrying (attempt {attempt + 1}/{max_attempts})")
+                await asyncio.sleep(sleep_interval)
+
+            except Exception as e:
+                logger.error(f"Failed querying Loki for {service}: {e}")
+                await asyncio.sleep(sleep_interval)
+
+        return []
 
 async def query_prometheus(service: str, window_seconds: int = 60) -> list[tuple]:
     end_time = time.time()
@@ -215,7 +229,7 @@ async def dispatch_remediation(service, root_cause, confidence, evidence, blast,
         "evidence_chain": evidence,
         "blast_radius": blast,
         "rca_latency_ms": round(elapsed_seconds * 1000, 1),
-        "recommended_action": "restart_container" if confidence > 0.5 else "log_only",
+        "recommended_action": "restart_container" if confidence > 0.90 else "log_only",
     }
 
     async with httpx.AsyncClient(timeout=3.0) as client:
@@ -246,7 +260,11 @@ async def run_rca_pipeline(service_name: str):
     metric_features = extract_metric_features(metrics)
     trace_features = extract_trace_features(traces)
 
-    # Step 3: Fusion classification
+    # Step 3: Fusion classification & ML Classification Engine Call
+    # TODO (Agent 2 Integration):
+    # Send `logs` directly to the new Text Classification Engine API that Agent 2 is building
+    # e.g., resp = await httpx.post("http://intelligence:8000/classify", json={"logs": logs})
+    # root_cause, confidence = resp.json().get("root_cause"), resp.json().get("confidence")
     root_cause, confidence, all_probs = classify(log_embedding, metric_features, trace_features, fusion_model, device)
 
     # Step 4: Evidence chain

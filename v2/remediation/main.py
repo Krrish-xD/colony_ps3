@@ -52,27 +52,33 @@ async def handle_action(request: RemediationRequest, background_tasks: Backgroun
         remaining = COOLDOWN_SECONDS - (current_time - last_restart)
         return {"status": "ignored", "reason": "cooldown", "remaining_seconds": round(remaining, 1)}
 
-    # 2. Confidence gating (all auto-execute, but flag severity)
+    # 2. Confidence gating (enforce 0.90 threshold for auto-remediation)
     if request.confidence >= 0.9:
         confidence_tier = "high"
-    elif request.confidence >= 0.5:
-        confidence_tier = "medium"
+
+        # 3. Set cooldown immediately (prevent concurrent restarts)
+        COOLDOWN_CACHE[request.service] = current_time
+
+        # 4. Offload to background task for non-blocking response
+        background_tasks.add_task(
+            execute_remediation,
+            request,
+            confidence_tier,
+            current_time,
+            True # execute_restart
+        )
+        return {"status": "accepted", "service": request.service, "confidence_tier": confidence_tier, "action": "restarting"}
     else:
-        confidence_tier = "low"
-        # Still execute, but mark as low confidence for dashboard warning
-
-    # 3. Set cooldown immediately (prevent concurrent restarts)
-    COOLDOWN_CACHE[request.service] = current_time
-
-    # 4. Offload to background task for non-blocking response
-    background_tasks.add_task(
-        execute_remediation,
-        request,
-        confidence_tier,
-        current_time
-    )
-
-    return {"status": "accepted", "service": request.service, "confidence_tier": confidence_tier}
+        # Prevent restart if confidence is lower than threshold
+        confidence_tier = "low" if request.confidence < 0.5 else "medium"
+        background_tasks.add_task(
+            execute_remediation,
+            request,
+            confidence_tier,
+            current_time,
+            False # DO NOT execute restart, log only
+        )
+        return {"status": "accepted", "service": request.service, "confidence_tier": confidence_tier, "action": "log_only"}
 
 
 @app.get("/health")
@@ -90,29 +96,31 @@ def get_cooldowns():
     return COOLDOWN_CACHE
 
 
-async def execute_remediation(request: RemediationRequest, confidence_tier: str, start_time: float):
+async def execute_remediation(request: RemediationRequest, confidence_tier: str, start_time: float, execute_restart: bool = True):
     global INCIDENT_COUNTER
     service = request.service
 
-    # ── STEP 1: Docker Restart (instant kill) ──
+    # ── STEP 1: Docker Restart (instant kill) OR Log Only ──
     restart_start = time.time()
     restart_success = False
-    try:
-        container = client.containers.get(service)
-        container.restart(timeout=0)    # -t 0: kill immediately, no graceful shutdown
-        restart_success = True
-    except docker.errors.NotFound:
-        # Container name might differ from service name in compose
-        # Try with project prefix pattern: colony_ps3-payment-service-1
+
+    if execute_restart:
         try:
-            containers = client.containers.list(all=True, filters={"name": service})
-            if containers:
-                containers[0].restart(timeout=0)
-                restart_success = True
+            container = client.containers.get(service)
+            container.restart(timeout=0)    # -t 0: kill immediately, no graceful shutdown
+            restart_success = True
+        except docker.errors.NotFound:
+            # Container name might differ from service name in compose
+            # Try with project prefix pattern: colony_ps3-payment-service-1
+            try:
+                containers = client.containers.list(all=True, filters={"name": service})
+                if containers:
+                    containers[0].restart(timeout=0)
+                    restart_success = True
+            except Exception as e:
+                print(f"Failed to restart {service}: {e}")
         except Exception as e:
             print(f"Failed to restart {service}: {e}")
-    except Exception as e:
-        print(f"Failed to restart {service}: {e}")
 
     restart_duration_ms = (time.time() - restart_start) * 1000
 
@@ -127,13 +135,19 @@ async def execute_remediation(request: RemediationRequest, confidence_tier: str,
 
     # ── STEP 4: Build Incident Record ──
     INCIDENT_COUNTER += 1
+
+    if not execute_restart:
+        action_taken = "log_only"
+    else:
+        action_taken = "restart_container" if restart_success else "restart_failed"
+
     incident = {
         "id": INCIDENT_COUNTER,
         "service": service,
         "root_cause": request.root_cause,
         "confidence": request.confidence,
         "confidence_tier": confidence_tier,
-        "action_taken": "restart_container" if restart_success else "restart_failed",
+        "action_taken": action_taken,
         "restart_duration_ms": round(restart_duration_ms, 1),
         "health_verified": health_verified,
         "rca_latency_ms": request.rca_latency_ms,
