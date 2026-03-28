@@ -1,7 +1,7 @@
 Requirement 	                        Status	             What's Needed
 6+ microservices under traffic	        DONE
-Locust/k6 load generation + chaos	    ❌ Not yet  	        Chaos scripts + traffic generator
-OTel → Prometheus + Loki + Jaeger	    ❌ Not yet  	        docker-compose.yml with full observability stack
+Locust/k6 load generation + chaos	    DONE         	     Chaos scripts + traffic generator
+OTel → Prometheus + Loki + Jaeger	    DONE        	     Docker-compose.yml with full observability stack
 DistilBERT/LogBERT log classifier	    ❌ Not yet	        The ML model that replaces v1's if/else string matching
 LSTM/TCN metric anomaly detection   	❌ Not yet      	    Time-series model on Prometheus metrics
 Cross-signal RCA correlation	        ❌ Not yet	        The intelligence engine combining all 3 signals
