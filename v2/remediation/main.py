@@ -69,16 +69,23 @@ async def handle_action(request: RemediationRequest, background_tasks: Backgroun
         )
         return {"status": "accepted", "service": request.service, "confidence_tier": confidence_tier, "action": "restarting"}
     else:
-        # Prevent restart if confidence is lower than threshold
-        confidence_tier = "low" if request.confidence < 0.5 else "medium"
-        background_tasks.add_task(
-            execute_remediation,
-            request,
-            confidence_tier,
-            current_time,
-            False # DO NOT execute restart, log only
-        )
-        return {"status": "accepted", "service": request.service, "confidence_tier": confidence_tier, "action": "log_only"}
+        confidence_tier = "low"
+
+    if confidence_tier == "low":
+        return {"status": "ignored", "reason": "low_confidence", "service": request.service}
+
+    # 3. Set cooldown immediately (prevent concurrent restarts)
+    COOLDOWN_CACHE[request.service] = current_time
+
+    # 4. Offload to background task for non-blocking response
+    background_tasks.add_task(
+        execute_remediation,
+        request,
+        confidence_tier,
+        current_time
+    )
+
+    return {"status": "accepted", "service": request.service, "confidence_tier": confidence_tier}
 
 
 @app.get("/health")
@@ -235,7 +242,7 @@ async def notify_intelligence_health_result(service: str, incident_id: int, was_
     """
     async with httpx.AsyncClient(timeout=1.0) as http:
         try:
-            await http.post("http://intelligence:5000/health_result", json={
+            await http.post("http://intelligence:8000/health_result", json={
                 "incident_id": incident_id,
                 "service": service,
                 "was_successful": was_successful

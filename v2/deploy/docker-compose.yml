@@ -1,0 +1,54 @@
+version: '3.8'
+
+networks:
+  monitor-net:
+    external: true
+    name: dockprom_monitor-net
+
+services:
+  # ==========================================
+  # INTELLIGENCE / RCA ENGINE
+  # ==========================================
+  intelligence:
+    build:
+      context: ../intelligence
+    ports:
+      - "8000:8000"
+    environment:
+      - LOKI_URL=http://loki:3100
+      - JAEGER_URL=http://jaeger:16686
+      - REMEDIATION_URL=http://remediation:8001
+      - DASHBOARD_URL=http://dashboard:3000
+    networks:
+      - monitor-net
+
+  # ==========================================
+  # REMEDIATION ENGINE
+  # ==========================================
+  remediation:
+    build:
+      context: ../remediation
+    ports:
+      - "8001:8001"
+    environment:
+      - DASHBOARD_URL=http://dashboard:3000/api/events
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - monitor-net
+    depends_on:
+      - dashboard
+
+  # ==========================================
+  # DASHBOARD UI (AMRIT'S FRONTEND)
+  # ==========================================
+  dashboard:
+    build:
+      context: ../dashboard
+    ports:
+      - "5001:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - monitor-net
+

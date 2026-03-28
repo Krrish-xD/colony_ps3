@@ -18,6 +18,6 @@ COPY . .
 # Create directories for model weights and fingerprint DB
 RUN mkdir -p /app/weights /app/data
 
-EXPOSE 5000
+EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

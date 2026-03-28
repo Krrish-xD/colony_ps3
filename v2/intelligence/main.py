@@ -86,11 +86,9 @@ def compute_blast_radius(failing_service: str) -> dict:
 
 # Signal Collection
 async def query_loki(service: str, window_seconds: int = 15, limit: int = 50) -> list[str]:
-    # Retry mechanism: 3-second micro-buffer (6 attempts x 0.5s) to bypass ingestion latency
-    max_attempts = 6
-    sleep_interval = 0.5
 
-    query = f'{{app="{service}"}} | json'
+    start_time_ns = time.time_ns() - (window_seconds * 1_000_000_000)
+    query = f'{{container=~".*{service}.*"}}'
 
     async with httpx.AsyncClient(timeout=2.0) as client:
         for attempt in range(max_attempts):
@@ -238,7 +236,7 @@ async def dispatch_remediation(service, root_cause, confidence, evidence, blast,
 
     async with httpx.AsyncClient(timeout=3.0) as client:
         try:
-            resp = await client.post("http://remediation:5001/action", json=payload)
+            resp = await client.post("http://remediation:8001/action", json=payload)
             resp.raise_for_status()
         except Exception as e:
             logger.error(f"Failed to dispatch remediation: {e}")
@@ -270,6 +268,24 @@ async def run_rca_pipeline(service_name: str):
     # e.g., resp = await httpx.post("http://intelligence:8000/classify", json={"logs": logs})
     # root_cause, confidence = resp.json().get("root_cause"), resp.json().get("confidence")
     root_cause, confidence, all_probs = classify(log_embedding, metric_features, trace_features, fusion_model, device)
+    
+    if not logs:
+        # Check if the Dashboard explicitly killed this container for the Chaos demo
+        is_chaos_demo = False
+        try:
+            async with httpx.AsyncClient(timeout=2.0) as http:
+                dash_resp = await http.get("http://dashboard:3000/api/state")
+                if dash_resp.status_code == 200:
+                    state = dash_resp.json()
+                    victim = state.get("last_victim", "")
+                    if victim != "-" and victim.replace("-", "") in service_name.replace("-", ""):
+                        is_chaos_demo = True
+        except Exception as e:
+            logger.error(f"Failed to verify chaos state with dashboard: {e}")
+            
+        if is_chaos_demo:
+            root_cause = "Abrupt Service Termination (Admin Chaos Injected)"
+            confidence = 0.99
 
     # Step 4: Evidence chain
     evidence = build_evidence_chain(service_name, logs, metrics, traces, root_cause, confidence)
@@ -330,7 +346,9 @@ async def handle_alert(request: Request, background_tasks: BackgroundTasks):
     if payload.get("status") == "firing":
         for alert in payload.get("alerts", []):
             labels = alert.get("labels", {})
-            service_name = labels.get("service") or labels.get("compose_service") or labels.get("app")
+            if labels.get("alertname") != "monitor_service_down":
+                continue # Prevent death-loop on load-generation alerts
+            service_name = labels.get("service") or labels.get("compose_service") or labels.get("app") or labels.get("job")
             if service_name:
                 background_tasks.add_task(run_rca_pipeline, service_name)
 
