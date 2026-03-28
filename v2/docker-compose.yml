@@ -1,0 +1,263 @@
+networks:
+  colony-net:
+    driver: bridge
+
+services:
+  # ==========================================
+  # OBSERVABILITY STACK
+  # ==========================================
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.97.0
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./observability/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8889:8889"
+    networks:
+      - colony-net
+    depends_on:
+      - loki
+      - jaeger
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+      - --storage.tsdb.retention.time=2h
+      - --storage.tsdb.retention.size=500MB
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./observability/rules.yml:/etc/prometheus/rules.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - colony-net
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+    volumes:
+      - ./observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
+    networks:
+      - colony-net
+    depends_on:
+      - prometheus
+
+  loki:
+    image: grafana/loki:2.9.8
+    command:
+      - -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./observability/loki-config.yaml:/etc/loki/loki-config.yaml
+    ports:
+      - "3100:3100"
+    networks:
+      - colony-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.56
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - SPAN_STORAGE_TYPE=memory
+      - MEMORY_MAX_TRACES=5000
+    ports:
+      - "16686:16686"
+    networks:
+      - colony-net
+
+  promtail:
+    image: grafana/promtail:2.9.8
+    command:
+      - -config.file=/etc/promtail/promtail-config.yaml
+    volumes:
+      - ./observability/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log:/var/log:ro
+    networks:
+      - colony-net
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=colony123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - colony-net
+    depends_on:
+      - prometheus
+      - loki
+      - jaeger
+
+  # ==========================================
+  # APPLICATION MICROSERVICES
+  # ==========================================
+
+  frontend-service:
+    build:
+      context: ./microservices/frontend-service
+    ports:
+      - "8001:8001"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+    depends_on:
+      - otel-collector
+
+  auth-service:
+    build:
+      context: ./microservices/auth-service
+    ports:
+      - "8002:8002"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+    depends_on:
+      - otel-collector
+
+  catalog-service:
+    build:
+      context: ./microservices/catalog-service
+    ports:
+      - "8003:8003"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+    depends_on:
+      - otel-collector
+
+  cart-service:
+    build:
+      context: ./microservices/cart-service
+    ports:
+      - "8004:8004"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+    depends_on:
+      - otel-collector
+
+  inventory-service:
+    build:
+      context: ./microservices/inventory-service
+    ports:
+      - "8005:8005"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+    depends_on:
+      - otel-collector
+
+  payment-service:
+    build:
+      context: ./microservices/payment-service
+    ports:
+      - "8006:8006"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+    depends_on:
+      - otel-collector
+
+  shipping-service:
+    build:
+      context: ./microservices/shipping-service
+    ports:
+      - "8007:8007"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+    depends_on:
+      - otel-collector
+
+  recommendation-service:
+    build:
+      context: ./microservices/recommendation-service
+    ports:
+      - "8008:8008"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+    depends_on:
+      - otel-collector
+
+  notification-service:
+    build:
+      context: ./microservices/notification-service
+    ports:
+      - "8009:8009"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    networks:
+      - colony-net
+    depends_on:
+      - otel-collector
+
+  # ==========================================
+  # INTELLIGENCE / RCA ENGINE
+  # ==========================================
+
+  intelligence:
+    build:
+      context: ./intelligence
+    ports:
+      - "5000:5000"
+    networks:
+      - colony-net
+    depends_on:
+      - otel-collector
+      - loki
+      - jaeger
+      - prometheus
+
+  # ==========================================
+  # REMEDIATION ENGINE
+  # ==========================================
+
+  remediation:
+    build:
+      context: ./remediation
+    ports:
+      - "5001:5001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - colony-net
+    depends_on:
+      - intelligence
+
+  # ==========================================
+  # LOAD GENERATOR (Locust)
+  # ==========================================
+
+  loadgen:
+    build:
+      context: ./loadgen
+    ports:
+      - "8089:8089"
+    networks:
+      - colony-net
+    depends_on:
+      - frontend-service
