@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,7 +55,6 @@
             margin: 0 0 0.5rem 0;
             background: linear-gradient(to right, #60a5fa, #c084fc);
             -webkit-background-clip: text;
-            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -242,46 +240,22 @@
             transform: translateY(-1px);
         }
 
-        .chaos-btn.crash {
-            border-left: 3px solid var(--red);
-        }
-
-        .chaos-btn.timeout {
-            border-left: 3px solid var(--yellow);
-        }
-
-        .chaos-btn.error {
-            border-left: 3px solid var(--text-muted);
-        }
+        .chaos-btn.crash { border-left: 3px solid var(--red); }
+        .chaos-btn.timeout { border-left: 3px solid var(--yellow); }
+        .chaos-btn.error { border-left: 3px solid var(--text-muted); }
 
         /* Animation class for flashes */
         @keyframes flash-green {
-            0% {
-                background-color: rgba(34, 197, 94, 0.5);
-            }
-
-            100% {
-                background-color: var(--surface-hover);
-            }
+            0% { background-color: rgba(34, 197, 94, 0.5); }
+            100% { background-color: var(--surface-hover); }
         }
-
         @keyframes flash-red {
-            0% {
-                background-color: rgba(239, 68, 68, 0.5);
-            }
-
-            100% {
-                background-color: var(--surface-hover);
-            }
+            0% { background-color: rgba(239, 68, 68, 0.5); }
+            100% { background-color: var(--surface-hover); }
         }
 
-        .flash-success {
-            animation: flash-green 1s ease;
-        }
-
-        .flash-error {
-            animation: flash-red 1s ease;
-        }
+        .flash-success { animation: flash-green 1s ease; }
+        .flash-error { animation: flash-red 1s ease; }
 
         /* Section 4: Event Log */
         .terminal {
@@ -307,231 +281,225 @@
         }
     </style>
 </head>
-
 <body>
 
-    <div class="container">
-        <header>
-            <h1>Colony PS3 — Demo Control Panel</h1>
-            <h2>Real-Time AI Observability & Auto-Remediation System</h2>
-            <div class="status-badge" id="locust-status">
-                <div class="dot" id="status-dot"></div>
-                <span id="status-text">Locust Disconnected</span>
-            </div>
-        </header>
-
-        <div class="panel">
-            <h3 class="panel-title">Traffic Control</h3>
-            <div class="traffic-controls">
-                <div class="input-group">
-                    <label for="user-count">Number of Users</label>
-                    <input type="number" id="user-count" value="50" min="1">
-                </div>
-                <div class="input-group">
-                    <label for="delay-sec">Delay (seconds)</label>
-                    <input type="number" id="delay-sec" value="5" min="0">
-                </div>
-                <button class="btn-primary" onclick="scheduleLoad()">🚀 Schedule Load</button>
-                <button class="btn-danger" onclick="stopTraffic()">🛑 Stop All Traffic</button>
-            </div>
+<div class="container">
+    <header>
+        <h1>Colony PS3 — Demo Control Panel</h1>
+        <h2>Real-Time AI Observability & Auto-Remediation System</h2>
+        <div class="status-badge" id="locust-status">
+            <div class="dot" id="status-dot"></div>
+            <span id="status-text">Locust Disconnected</span>
         </div>
+    </header>
 
-        <div class="panel">
-            <h3 class="panel-title">Chaos Injection</h3>
-            <div class="chaos-grid" id="chaos-container">
-                <!-- Headers -->
-                <div style="font-weight: 500; color: var(--text-muted); padding-bottom: 0.5rem;">Target Service</div>
-                <div style="font-weight: 500; color: var(--text-muted); padding-bottom: 0.5rem; text-align: center;">
-                    Severe</div>
-                <div style="font-weight: 500; color: var(--text-muted); padding-bottom: 0.5rem; text-align: center;">
-                    Moderate</div>
-                <div style="font-weight: 500; color: var(--text-muted); padding-bottom: 0.5rem; text-align: center;">
-                    Mild</div>
-
-                <!-- Rows injected by JS -->
+    <div class="panel">
+        <h3 class="panel-title">Traffic Control</h3>
+        <div class="traffic-controls">
+            <div class="input-group">
+                <label for="user-count">Number of Users</label>
+                <input type="number" id="user-count" value="50" min="1">
             </div>
-        </div>
-
-        <div class="panel" style="padding: 0;">
-            <div class="terminal" id="event-log"></div>
+            <div class="input-group">
+                <label for="delay-sec">Delay (seconds)</label>
+                <input type="number" id="delay-sec" value="5" min="0">
+            </div>
+            <button class="btn-primary" onclick="scheduleLoad()">🚀 Schedule Load</button>
+            <button class="btn-danger" onclick="stopTraffic()">🛑 Stop All Traffic</button>
         </div>
     </div>
 
-    <div class="countdown-overlay" id="countdown-overlay">
-        <div class="countdown-number" id="countdown-display">5</div>
+    <div class="panel">
+        <h3 class="panel-title">Chaos Injection</h3>
+        <div class="chaos-grid" id="chaos-container">
+            <!-- Headers -->
+            <div style="font-weight: 500; color: var(--text-muted); padding-bottom: 0.5rem;">Target Service</div>
+            <div style="font-weight: 500; color: var(--text-muted); padding-bottom: 0.5rem; text-align: center;">Severe</div>
+            <div style="font-weight: 500; color: var(--text-muted); padding-bottom: 0.5rem; text-align: center;">Moderate</div>
+            <div style="font-weight: 500; color: var(--text-muted); padding-bottom: 0.5rem; text-align: center;">Mild</div>
+
+            <!-- Rows injected by JS -->
+        </div>
     </div>
 
-    <script>
-        // Configuration
-        const LOCUST_API = "http://localhost:8089";
-        const TARGET_HOST = "http://frontend-service:8001";
+    <div class="panel" style="padding: 0;">
+        <div class="terminal" id="event-log"></div>
+    </div>
+</div>
 
-        const SERVICES = [
-            { name: "auth-service", port: 8002 },
-            { name: "catalog-service", port: 8003 },
-            { name: "cart-service", port: 8004 },
-            { name: "payment-service", port: 8006 },
-            { name: "shipping-service", port: 8007 },
-            { name: "recommendation-service", port: 8008 },
-            { name: "notification-service", port: 8009 }
-        ];
+<div class="countdown-overlay" id="countdown-overlay">
+    <div class="countdown-number" id="countdown-display">5</div>
+</div>
 
-        // DOM Elements
-        const terminal = document.getElementById('event-log');
-        const statusDot = document.getElementById('status-dot');
-        const statusText = document.getElementById('status-text');
-        const countdownOverlay = document.getElementById('countdown-overlay');
-        const countdownDisplay = document.getElementById('countdown-display');
+<script>
+    // Configuration
+    const LOCUST_API = "http://localhost:8089";
+    const TARGET_HOST = "http://frontend-service:8001";
 
-        // Logging Utility
-        function logEvent(message) {
-            const now = new Date();
-            const timeStr = now.toTimeString().split(' ')[0]; // HH:MM:SS
-            const entry = document.createElement('div');
-            entry.className = 'log-entry';
-            entry.innerHTML = `<span class="log-time">[${timeStr}]</span> ${message}`;
-            terminal.appendChild(entry);
-            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll
+    const SERVICES = [
+        { name: "auth-service", port: 8002 },
+        { name: "catalog-service", port: 8003 },
+        { name: "cart-service", port: 8004 },
+        { name: "payment-service", port: 8006 },
+        { name: "shipping-service", port: 8007 },
+        { name: "recommendation-service", port: 8008 },
+        { name: "notification-service", port: 8009 }
+    ];
+
+    // DOM Elements
+    const terminal = document.getElementById('event-log');
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+    const countdownOverlay = document.getElementById('countdown-overlay');
+    const countdownDisplay = document.getElementById('countdown-display');
+
+    // Logging Utility
+    function logEvent(message) {
+        const now = new Date();
+        const timeStr = now.toTimeString().split(' ')[0]; // HH:MM:SS
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML = `<span class="log-time">[${timeStr}]</span> ${message}`;
+        terminal.appendChild(entry);
+        terminal.scrollTop = terminal.scrollHeight; // Auto-scroll
+    }
+
+    // Status Polling
+    async function checkLocustStatus() {
+        try {
+            // Using /stats/requests to verify it's up
+            const res = await fetch(`${LOCUST_API}/stats/requests`);
+            if (res.ok) {
+                statusDot.classList.add('connected');
+                statusText.innerText = "Locust Connected";
+            } else {
+                throw new Error("Bad status");
+            }
+        } catch (e) {
+            statusDot.classList.remove('connected');
+            statusText.innerText = "Locust Disconnected";
+        }
+    }
+
+    setInterval(checkLocustStatus, 2000);
+    checkLocustStatus();
+
+    // Traffic Control Logic
+    let countdownInterval;
+
+    function scheduleLoad() {
+        const users = document.getElementById('user-count').value;
+        const delay = parseInt(document.getElementById('delay-sec').value);
+
+        logEvent(`🚀 Scheduled ${users} users in ${delay} seconds`);
+
+        if (delay === 0) {
+            startTraffic(users);
+            return;
         }
 
-        // Status Polling
-        async function checkLocustStatus() {
-            try {
-                // Using /stats/requests to verify it's up
-                const res = await fetch(`${LOCUST_API}/stats/requests`);
-                if (res.ok) {
-                    statusDot.classList.add('connected');
-                    statusText.innerText = "Locust Connected";
-                } else {
-                    throw new Error("Bad status");
-                }
-            } catch (e) {
-                statusDot.classList.remove('connected');
-                statusText.innerText = "Locust Disconnected";
-            }
-        }
+        let currentCount = delay;
+        countdownDisplay.innerText = currentCount;
+        countdownOverlay.classList.add('active');
 
-        setInterval(checkLocustStatus, 2000);
-        checkLocustStatus();
-
-        // Traffic Control Logic
-        let countdownInterval;
-
-        function scheduleLoad() {
-            const users = document.getElementById('user-count').value;
-            const delay = parseInt(document.getElementById('delay-sec').value);
-
-            logEvent(`🚀 Scheduled ${users} users in ${delay} seconds`);
-
-            if (delay === 0) {
-                startTraffic(users);
-                return;
-            }
-
-            let currentCount = delay;
-            countdownDisplay.innerText = currentCount;
-            countdownOverlay.classList.add('active');
-
-            clearInterval(countdownInterval);
-            countdownInterval = setInterval(() => {
-                currentCount--;
+        clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+            currentCount--;
+            if (currentCount > 0) {
                 countdownDisplay.innerText = currentCount;
-                if (currentCount <= 0) {
-                    clearInterval(countdownInterval);
-                    setTimeout(() => {
-                        countdownOverlay.classList.remove('active');
-                        startTraffic(users);
-                    }, 500);
-                }
-            }, 1000);
-        }
-
-        async function startTraffic(users) {
-            try {
-                const formData = new URLSearchParams();
-                formData.append('user_count', users);
-                formData.append('spawn_rate', '10');
-                formData.append('host', TARGET_HOST);
-
-                await fetch(`${LOCUST_API}/swarm`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: formData.toString()
-                });
-                logEvent(`✅ Traffic started — ${users} users spawning at 10/s`);
-            } catch (e) {
-                logEvent(`❌ Failed to start traffic: ${e.message}`);
-            }
-        }
-
-        async function stopTraffic() {
-            try {
-                await fetch(`${LOCUST_API}/stop`);
-                logEvent(`🛑 Traffic stopped`);
-
-                // If stopped during countdown
+            } else {
                 clearInterval(countdownInterval);
                 countdownOverlay.classList.remove('active');
-            } catch (e) {
-                logEvent(`❌ Failed to stop traffic: ${e.message}`);
+                startTraffic(users);
             }
+        }, 1000);
+    }
+
+    async function startTraffic(users) {
+        try {
+            const formData = new URLSearchParams();
+            formData.append('user_count', users);
+            formData.append('spawn_rate', '10');
+            formData.append('host', TARGET_HOST);
+
+            await fetch(`${LOCUST_API}/swarm`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData.toString()
+            });
+            logEvent(`✅ Traffic started — ${users} users spawning at 10/s`);
+        } catch (e) {
+            logEvent(`❌ Failed to start traffic: ${e.message}`);
         }
+    }
 
-        // Chaos Grid Generation & Logic
-        const chaosContainer = document.getElementById('chaos-container');
+    async function stopTraffic() {
+        try {
+            await fetch(`${LOCUST_API}/stop`);
+            logEvent(`🛑 Traffic stopped`);
 
-        async function injectFault(btn, serviceName, port, faultType, icon) {
-            // Reset animation
-            btn.classList.remove('flash-success', 'flash-error');
-            void btn.offsetWidth; // trigger reflow
-
-            const url = `http://localhost:${port}/fault/${faultType}`;
-            logEvent(`${icon} ${faultType.charAt(0).toUpperCase() + faultType.slice(1)} injected → ${serviceName}:${port}`);
-
-            try {
-                await fetch(url, { mode: 'no-cors' });
-                btn.classList.add('flash-success');
-            } catch (e) {
-                btn.classList.add('flash-error');
-                logEvent(`⚠️ Network error reaching ${serviceName}:${port} (It might be dead)`);
-            }
+            // If stopped during countdown
+            clearInterval(countdownInterval);
+            countdownOverlay.classList.remove('active');
+        } catch (e) {
+            logEvent(`❌ Failed to stop traffic: ${e.message}`);
         }
+    }
 
-        SERVICES.forEach(svc => {
-            // Label
-            const label = document.createElement('div');
-            label.className = 'service-label';
-            label.innerText = `${svc.name}:${svc.port}`;
-            chaosContainer.appendChild(label);
+    // Chaos Grid Generation & Logic
+    const chaosContainer = document.getElementById('chaos-container');
 
-            // Crash
-            const btnCrash = document.createElement('button');
-            btnCrash.className = 'chaos-btn crash';
-            btnCrash.innerHTML = '🔴 Crash';
-            btnCrash.onclick = (e) => injectFault(e.currentTarget, svc.name, svc.port, 'crash', '🔴');
-            chaosContainer.appendChild(btnCrash);
+    async function injectFault(btn, serviceName, port, faultType, icon) {
+        // Reset animation
+        btn.classList.remove('flash-success', 'flash-error');
+        void btn.offsetWidth; // trigger reflow
 
-            // Timeout
-            const btnTimeout = document.createElement('button');
-            btnTimeout.className = 'chaos-btn timeout';
-            btnTimeout.innerHTML = '🟡 Timeout';
-            btnTimeout.onclick = (e) => injectFault(e.currentTarget, svc.name, svc.port, 'timeout', '🟡');
-            chaosContainer.appendChild(btnTimeout);
+        const url = `http://localhost:${port}/fault/${faultType}`;
+        logEvent(`${icon} ${faultType.charAt(0).toUpperCase() + faultType.slice(1)} injected → ${serviceName}:${port}`);
 
-            // Error
-            const btnError = document.createElement('button');
-            btnError.className = 'chaos-btn error';
-            btnError.innerHTML = '❌ Error';
-            btnError.onclick = (e) => injectFault(e.currentTarget, svc.name, svc.port, 'error', '❌');
-            chaosContainer.appendChild(btnError);
-        });
+        try {
+            await fetch(url, { mode: 'no-cors' });
+            btn.classList.add('flash-success');
+        } catch (e) {
+            btn.classList.add('flash-error');
+            logEvent(`⚠️ Network error reaching ${serviceName}:${port} (It might be dead)`);
+        }
+    }
 
-        // Initial Log
-        logEvent("SYSTEM INITIALIZED. Awaiting commands.");
+    SERVICES.forEach(svc => {
+        // Label
+        const label = document.createElement('div');
+        label.className = 'service-label';
+        label.innerText = `${svc.name}:${svc.port}`;
+        chaosContainer.appendChild(label);
 
-    </script>
+        // Crash
+        const btnCrash = document.createElement('button');
+        btnCrash.className = 'chaos-btn crash';
+        btnCrash.innerHTML = '🔴 Crash';
+        btnCrash.onclick = (e) => injectFault(e.currentTarget, svc.name, svc.port, 'crash', '🔴');
+        chaosContainer.appendChild(btnCrash);
+
+        // Timeout
+        const btnTimeout = document.createElement('button');
+        btnTimeout.className = 'chaos-btn timeout';
+        btnTimeout.innerHTML = '🟡 Timeout';
+        btnTimeout.onclick = (e) => injectFault(e.currentTarget, svc.name, svc.port, 'timeout', '🟡');
+        chaosContainer.appendChild(btnTimeout);
+
+        // Error
+        const btnError = document.createElement('button');
+        btnError.className = 'chaos-btn error';
+        btnError.innerHTML = '❌ Error';
+        btnError.onclick = (e) => injectFault(e.currentTarget, svc.name, svc.port, 'error', '❌');
+        chaosContainer.appendChild(btnError);
+    });
+
+    // Initial Log
+    logEvent("SYSTEM INITIALIZED. Awaiting commands.");
+
+</script>
 </body>
-
 </html>
